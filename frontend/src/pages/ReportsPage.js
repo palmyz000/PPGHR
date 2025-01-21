@@ -1,9 +1,9 @@
-// ReportsPage.js
+
 import React, { useState, useEffect } from 'react';
 import { Search, Download, Filter, Calendar, Plus, X } from 'lucide-react';
 
 const ReportsPage = () => {
-  // States
+
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [startDate, setStartDate] = useState('');
@@ -21,7 +21,7 @@ const ReportsPage = () => {
     access_level: ''
   });
 
-  // Clear success message after 3 seconds
+
   useEffect(() => {
     if (successMessage) {
       const timer = setTimeout(() => {
@@ -31,7 +31,7 @@ const ReportsPage = () => {
     }
   }, [successMessage]);
 
-  // Fetch documents on component mount
+
   useEffect(() => {
     fetchDocuments();
   }, []);
@@ -402,8 +402,6 @@ const ReportsPage = () => {
           </div>
         </div>
       )}
-
-      {/* Success Message Toast */}
       {successMessage && (
         <div className="fixed bottom-4 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded shadow-lg">
           {successMessage}
