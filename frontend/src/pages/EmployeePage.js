@@ -17,7 +17,7 @@ const EmployeePage = () => {
   const [selectedDepartment, setSelectedDepartment] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState("all");
 
-  const departments = ["IT", "Marketing", "Sales", "Finance", "HR"];
+  const departments = ["MIS", "Marketing", "Sales", "Finance", "HR"];
   const statuses = [
     { value: "1", label: "ทำงาน" },
     { value: "0", label: "ลางาน" },
