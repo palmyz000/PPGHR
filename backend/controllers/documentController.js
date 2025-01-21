@@ -1,28 +1,28 @@
 const db = require('../models/db');
 
 const addDocumentType = async (req, res) => {
-    const { doc_type_name, description, access_level = 1 } = req.body;
+    const { doc_type_name, description, access_level = 1, max_days, doc_type_id } = req.body;
   
     try {
       const conn = await db.getConnection();
       const [existingdoc_type_name] = await conn.query(
-        "SELECT * FROM PPGHR_document_types WHERE doc_type_name = ?",
-        [doc_type_name]
+        "SELECT * FROM PPGHR_document_types WHERE doc_type_id = ?",
+        [doc_type_id]
       );
   
   
       if (existingdoc_type_name && existingdoc_type_name.length > 0) {
         conn.release(); // ปล่อยการเชื่อมต่อ
         return res.status(400).json({
-          message: "doc_type_name already exists.",
+          message: "doc_type_id already exists.",
         });
       }
 
       const result = await conn.query(
-        "INSERT INTO PPGHR_document_types (doc_type_name, description, access_level) VALUES (?, ?, ?)",
-        [doc_type_name, description, access_level]
+        "INSERT INTO PPGHR_document_types (doc_type_name, description, access_level, max_days, doc_type_id) VALUES (?, ?, ?, ?, ?)",
+        [doc_type_name, description, access_level, max_days, doc_type_id]
       );
-  
+
       console.log("Insert result:", result);
   
       conn.release(); 
@@ -36,15 +36,15 @@ const addDocumentType = async (req, res) => {
   };
 
 const updateDocument = async (req, res) => {
-    const { doc_type_name, description, access_level } = req.body;
+    const { doc_type_name, description, access_level, max_days, doc_type_id } = req.body;
 
     try {
         const conn = await db.getConnection();
 
         // ตรวจสอบว่าพนักงานที่ต้องการอัปเดตมีอยู่หรือไม่
         const [existingdoc_type_name] = await conn.query(
-            "SELECT * FROM PPGHR_document_types WHERE doc_type_name = ?",
-            [doc_type_name]
+            "SELECT * FROM PPGHR_document_types WHERE doc_type_id = ?",
+            [doc_type_id]
         );
 
         if (!existingdoc_type_name || existingdoc_type_name.length === 0) {
@@ -56,8 +56,8 @@ const updateDocument = async (req, res) => {
 
         // อัปเดตข้อมูลพนักงาน
         const result = await conn.query(
-            "UPDATE PPGHR_document_types SET doc_type_name = ?, description = ?, access_level = ?",
-            [doc_type_name, description, access_level]
+            "UPDATE PPGHR_document_types SET doc_type_name = ?, description = ?, access_level = ?, max_days = ?, doc_type_id = ?",
+            [doc_type_name, description, access_level, max_days, doc_type_id]
         );
 
         conn.release();

@@ -1,9 +1,9 @@
-
+// ReportsPage.js
 import React, { useState, useEffect } from 'react';
 import { Search, Download, Filter, Calendar, Plus, X } from 'lucide-react';
 
 const ReportsPage = () => {
-
+  // States
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [startDate, setStartDate] = useState('');
@@ -21,7 +21,7 @@ const ReportsPage = () => {
     access_level: ''
   });
 
-
+  // Clear success message after 3 seconds
   useEffect(() => {
     if (successMessage) {
       const timer = setTimeout(() => {
@@ -31,7 +31,7 @@ const ReportsPage = () => {
     }
   }, [successMessage]);
 
-
+  // Fetch documents on component mount
   useEffect(() => {
     fetchDocuments();
   }, []);
@@ -41,16 +41,16 @@ const ReportsPage = () => {
       setLoading(true);
       setError(null);
       const response = await fetch('http://localhost:8000/api/documents/all');
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const data = await response.json();
       if (data.success === false) {
         throw new Error(data.message || 'Failed to fetch documents');
       }
-      
+
       setDocuments(Array.isArray(data) ? data : data.data || []);
     } catch (error) {
       console.error('Error fetching documents:', error);
@@ -74,7 +74,9 @@ const ReportsPage = () => {
         body: JSON.stringify({
           doc_type_name: newDocument.doc_type_name,
           description: newDocument.description,
-          access_level: parseInt(newDocument.access_level)
+          access_level: parseInt(newDocument.access_level),
+          max_days: newDocument.max_days,
+          doc_type_id: newDocument.doc_type_id,
         }),
       });
 
@@ -92,7 +94,9 @@ const ReportsPage = () => {
       setNewDocument({
         doc_type_name: '',
         description: '',
-        access_level: ''
+        access_level: '',
+        max_days: '',
+        doc_type_id: ''
       });
       await fetchDocuments();
     } catch (error) {
@@ -139,7 +143,7 @@ const ReportsPage = () => {
   };
 
   const filteredDocuments = documents.filter((doc) => {
-    const matchSearch = 
+    const matchSearch =
       doc.doc_type_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       doc.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchStatus = statusFilter === 'all' || doc.access_level?.toString() === statusFilter;
@@ -277,11 +281,10 @@ const ReportsPage = () => {
                       {doc.description || '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 rounded-full text-xs ${
-                        doc.access_level === 1 ? 'bg-green-100 text-green-800' :
+                      <span className={`px-2 py-1 rounded-full text-xs ${doc.access_level === 1 ? 'bg-green-100 text-green-800' :
                         doc.access_level === 2 ? 'bg-blue-100 text-blue-800' :
-                        'bg-purple-100 text-purple-800'
-                      }`}>
+                          'bg-purple-100 text-purple-800'
+                        }`}>
                         ระดับ {doc.access_level}
                       </span>
                     </td>
@@ -313,7 +316,7 @@ const ReportsPage = () => {
           <div className="bg-white rounded-lg w-full max-w-lg">
             <div className="flex justify-between items-center p-6 border-b">
               <h3 className="text-xl font-semibold">เพิ่มประเภทเอกสาร</h3>
-              <button 
+              <button
                 onClick={() => setShowModal(false)}
                 disabled={loading}
               >
@@ -324,15 +327,15 @@ const ReportsPage = () => {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    ชื่อประเภทเอกสาร
+                    รหัสประเภทเอกสาร
                   </label>
                   <input
                     type="text"
                     required
-                    value={newDocument.doc_type_name}
-                    onChange={(e) => setNewDocument({ 
-                      ...newDocument, 
-                      doc_type_name: e.target.value 
+                    value={newDocument.doc_type_id} // เชื่อมกับ doc_type_id
+                    onChange={(e) => setNewDocument({
+                      ...newDocument,
+                      doc_type_id: e.target.value // เก็บค่าใน doc_type_id
                     })}
                     className="w-full p-2 border rounded-lg"
                     disabled={loading}
@@ -340,13 +343,52 @@ const ReportsPage = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
+                    ชื่อประเภทเอกสาร
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={newDocument.doc_type_name} // เชื่อมกับ doc_type_name
+                    onChange={(e) => setNewDocument({
+                      ...newDocument,
+                      doc_type_name: e.target.value // เก็บค่าใน doc_type_name
+                    })}
+                    className="w-full p-2 border rounded-lg"
+                    disabled={loading}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    จำนวนวันลา
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    min="0"
+                    max="365"
+                    value={newDocument.max_days} // ใช้ max_days แทน max_leave_days
+                    onChange={(e) =>
+                      setNewDocument({
+                        ...newDocument,
+                        max_days: parseInt(e.target.value) || 0, // แปลงเป็น Integer
+                      })
+                    }
+                    className="w-full p-2 border rounded-lg"
+                    disabled={loading}
+                  />
+
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     คำอธิบาย
                   </label>
                   <textarea
                     value={newDocument.description}
-                    onChange={(e) => setNewDocument({ 
-                      ...newDocument, 
-                      description: e.target.value 
+                    onChange={(e) => setNewDocument({
+                      ...newDocument,
+                      description: e.target.value
                     })}
                     className="w-full p-2 border rounded-lg"
                     rows="3"
@@ -360,9 +402,9 @@ const ReportsPage = () => {
                   <select
                     required
                     value={newDocument.access_level}
-                    onChange={(e) => setNewDocument({ 
-                      ...newDocument, 
-                      access_level: e.target.value 
+                    onChange={(e) => setNewDocument({
+                      ...newDocument,
+                      access_level: e.target.value
                     })}
                     className="w-full p-2 border rounded-lg"
                     disabled={loading}
@@ -402,6 +444,8 @@ const ReportsPage = () => {
           </div>
         </div>
       )}
+
+      {/* Success Message Toast */}
       {successMessage && (
         <div className="fixed bottom-4 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded shadow-lg">
           {successMessage}
