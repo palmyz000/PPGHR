@@ -8,7 +8,7 @@ const Navbar = ({ activeTab, setActiveTab }) => {
       <div className="max-w-screen-2xl mx-auto">
         <div className="flex justify-between items-center px-6 py-3">
           <div className="flex items-center space-x-8">
-          <img src={logo} alt="PPGHR Logo" className="navbar-logo" />
+          <img src={logo} alt="PPGHR Logo" className="navbar-logo w-17 h-16 object-contain" />
             <h1 className="text-xl font-bold text-blue-900">PPGHR Software and Systems</h1>
             <nav className="flex space-x-4">
               <Link
