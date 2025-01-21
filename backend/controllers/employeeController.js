@@ -110,6 +110,74 @@ const getAllEmployees = async (req, res) => {
 };
 
 
+const getEmployeeStatistics = async (req, res) => {
+    let conn;
+    try {
+        conn = await db.getConnection();
+
+        const totalEmployeesResult = await conn.query(
+            "SELECT COUNT(*) AS count FROM PPGHR_employee_data WHERE is_active = 1"
+        );
+        const totalEmployees = totalEmployeesResult[0]?.count || 0;
+
+
+        const currentMonthResult = await conn.query(
+            "SELECT COUNT(*) AS count FROM PPGHR_employee_data WHERE MONTH(hire_date) = MONTH(CURRENT_DATE()) AND YEAR(hire_date) = YEAR(CURRENT_DATE()) AND is_active = 1"
+        );
+        const currentMonth = currentMonthResult[0]?.count || 0;
+        
+
+        const currentYearResult = await conn.query(
+            "SELECT COUNT(*) AS count FROM PPGHR_employee_data WHERE YEAR(hire_date) = YEAR(CURRENT_DATE()) AND is_active = 1"
+        );
+        const currentYear = currentYearResult[0]?.count || 0;
+
+        const [monthlyResults] = await conn.query(
+            "SELECT MONTH(hire_date) AS month, COUNT(*) AS count FROM PPGHR_employee_data WHERE YEAR(hire_date) = YEAR(CURRENT_DATE()) AND is_active = 1 GROUP BY MONTH(hire_date) ORDER BY month"
+        );
+
+        console.log("Monthly Results Raw:", monthlyResults);
+
+        // แปลงข้อมูล monthlyResults
+        let monthlyStatistics = [];
+        if (Array.isArray(monthlyResults)) {
+            monthlyStatistics = monthlyResults.map(row => ({
+                month: row.month,
+                count: parseInt(row.count, 10) || 0,
+            }));
+        } else if (monthlyResults && typeof monthlyResults === 'object') {
+            monthlyStatistics = [
+                {
+                    month: monthlyResults.month,
+                    count: parseInt(monthlyResults.count, 10) || 0,
+                },
+            ];
+        }
+
+        res.status(200).json({
+            totalEmployees: parseInt(totalEmployees, 10),
+            employeesThisMonth: parseInt(currentMonth, 10),
+            employeesThisYear: parseInt(currentYear, 10),
+            monthlyStatistics,
+        });
+    } catch (error) {
+        console.error("Error fetching employee statistics:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+    } finally {
+        if (conn) conn.release();
+    }
+};
+
+
+
+
+
+
+
+
+
+
+
 
 // ส่งออกฟังก์ชันทั้งหมด
-module.exports = { addEmployee, updateEmployee, getAllEmployees };
+module.exports = { addEmployee, updateEmployee, getAllEmployees, getEmployeeStatistics };

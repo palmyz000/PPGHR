@@ -1,22 +1,43 @@
-import React, { useState } from 'react';
-import { 
-  LineChart, Line, XAxis, YAxis, CartesianGrid, 
-  Tooltip, Legend, ResponsiveContainer
-} from 'recharts';
-import { Users, Calendar, DollarSign, Award, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Users, Calendar, DollarSign, Award } from 'lucide-react';
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [statistics, setStatistics] = useState({
+    totalEmployees: 0,
+    employeesThisMonth: 0,
+    employeesThisYear: 0,
+    monthlyStatistics: [],
+  });
 
-  // Sample data for charts
-  const employeeStats = [
-    { month: 'Jan', total: 150, new: 5, resigned: 2 },
-    { month: 'Feb', total: 153, new: 4, resigned: 1 },
-    { month: 'Mar', total: 156, new: 6, resigned: 3 },
-    { month: 'Apr', total: 159, new: 5, resigned: 2 },
-    { month: 'May', total: 162, new: 4, resigned: 1 },
-    { month: 'Jun', total: 165, new: 7, resigned: 4 }
-  ];
+  const fetchEmployeeStatistics = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/api/employees/statistics');
+      const data = await response.json();
+
+      // Map month numbers to English month names
+      const monthNames = [
+        "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"
+      ];
+
+      const updatedMonthlyStatistics = data.monthlyStatistics.map((item) => ({
+        ...item,
+        month: monthNames[item.month - 1], // Convert month number to name
+      }));
+
+      setStatistics({
+        ...data,
+        monthlyStatistics: updatedMonthlyStatistics,
+      });
+    } catch (error) {
+      console.error('Error fetching employee statistics:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchEmployeeStatistics();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100">
@@ -28,9 +49,9 @@ const Dashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">พนักงานทั้งหมด</p>
-                <h3 className="text-2xl font-bold text-blue-900">165 คน</h3>
+                <h3 className="text-2xl font-bold text-blue-900">{statistics.totalEmployees} คน</h3>
                 <div className="mt-2 text-sm">
-                  <span className="text-green-500">+5 คน</span>
+                  <span className="text-green-500">+{statistics.employeesThisMonth} คน</span>
                   <span className="text-gray-500 ml-1">เดือนนี้</span>
                 </div>
               </div>
@@ -94,23 +115,20 @@ const Dashboard = () => {
             <h3 className="text-lg font-semibold text-blue-900 mb-4">สถิติพนักงาน</h3>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={employeeStats}>
+                <LineChart data={statistics.monthlyStatistics}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" />
                   <YAxis />
                   <Tooltip />
                   <Legend />
-                  <Line type="monotone" dataKey="total" name="พนักงานทั้งหมด" stroke="#3B82F6" strokeWidth={2} />
-                  <Line type="monotone" dataKey="new" name="พนักงานใหม่" stroke="#10B981" />
-                  <Line type="monotone" dataKey="resigned" name="ลาออก" stroke="#EF4444" />
+                  <Line type="monotone" dataKey="count" name="พนักงานที่จ้างใหม่" stroke="#3B82F6" strokeWidth={2} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
           </div>
 
-          {/* Important Updates */}
+          {/* Upcoming Tasks */}
           <div className="col-span-4 space-y-6">
-            {/* Upcoming Tasks */}
             <div className="bg-white rounded-xl shadow-md p-6">
               <h3 className="text-lg font-semibold text-blue-900 mb-4">งานที่ต้องทำ</h3>
               <div className="space-y-4">
