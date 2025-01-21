@@ -1,40 +1,35 @@
 import React, { useState } from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'; // ใช้ Routes แทน Switch
 import Navbar from './Navbar';
 import Dashboard from './Dashboard';
 import EmployeePage from './EmployeePage';
 import LeavePage from './LeavePage';
-import PayrollPage from './PayrollPage'; // ตัวอย่างหน้าเงินเดือน
-import EvaluationPage from './EvaluationPage'; // ตัวอย่างหน้าการประเมินผล
-import ReportsPage from './ReportsPage'; // ตัวอย่างหน้ารายงาน
-const App = () => {
-  const [activeTab, setActiveTab] = useState('dashboard'); // กำหนดค่าเริ่มต้นเป็น 'dashboard'
+import PayrollPage from './PayrollPage';
+import EvaluationPage from './EvaluationPage';
+import ReportsPage from './ReportsPage'; // เพิ่มหน้ารายงาน
 
-  const renderContent = () => {
-    switch (activeTab) {
-      case 'dashboard':
-        return <Dashboard />;
-      case 'employees':
-        return <EmployeePage />;
-      case 'leave':
-        return <LeavePage />;
-      case 'payroll':
-        return <PayrollPage />;
-      case 'evaluation':
-        return <EvaluationPage />;
-      case 'reports':
-        return <ReportsPage />;
-      default:
-        return <Dashboard />;
-    }
-  };
+const App = () => {
+  const [activeTab, setActiveTab] = useState('dashboard'); // ใช้ useState เพื่อจัดการแท็บที่เลือก
 
   return (
-    <div>
-      <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
-      <div className="max-w-screen-2xl mx-auto p-6">
-        {renderContent()}
+    <Router>
+      <div>
+        {/* ส่ง setActiveTab ไปที่ Navbar เพื่อให้ปรับเปลี่ยน activeTab */}
+        <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
+        <div className="max-w-screen-2xl mx-auto p-6">
+          {/* ใช้ Routes และ Route */}
+          <Routes>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/employees" element={<EmployeePage />} />
+            <Route path="/leave" element={<LeavePage />} />
+            <Route path="/payroll" element={<PayrollPage />} />
+            <Route path="/evaluation" element={<EvaluationPage />} />
+            <Route path="/reports" element={<ReportsPage />} />
+            <Route path="/" element={<Dashboard />} />
+          </Routes>
+        </div>
       </div>
-    </div>
+    </Router>
   );
 };
 
