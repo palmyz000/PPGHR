@@ -16,6 +16,7 @@ const EmployeePage = () => {
   const [selectedDepartment, setSelectedDepartment] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -25,7 +26,7 @@ const EmployeePage = () => {
     { value: "0", label: "ลางาน" },
   ];
 
-  // Fetch employees จาก API
+  // Fetch employees from API
   useEffect(() => {
     fetchEmployees();
   }, []);
@@ -65,21 +66,36 @@ const EmployeePage = () => {
   // Handle Functions
   const handleAddEmployee = async (newEmployeeData) => {
     try {
+      // Ensure we're only sending the required data fields
+      const employeePayload = {
+        emp_code: newEmployeeData.emp_code,
+        name: newEmployeeData.name,
+        email: newEmployeeData.email,
+        invite_code: newEmployeeData.invite_code,
+        is_active: newEmployeeData.is_active,
+        position: newEmployeeData.position,
+        department: newEmployeeData.department,
+        hire_date: newEmployeeData.hire_date,
+        phone: newEmployeeData.phone,
+        user_id: newEmployeeData.user_id
+      };
+
       const response = await fetch('http://localhost:8000/api/employees/add', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(newEmployeeData),
+        body: JSON.stringify(employeePayload),
       });
 
-      if (response.ok) {
-        fetchEmployees(); // Refresh the list
-        return true;
-      } else {
+      if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || 'Failed to add employee');
       }
+
+      await fetchEmployees(); // Refresh the list
+      setShowAddModal(false); // Close the modal after successful addition
+      return true;
     } catch (error) {
       console.error('Error adding employee:', error);
       throw error;
@@ -123,7 +139,7 @@ const EmployeePage = () => {
           <p className="text-sm text-gray-600">จัดการข้อมูลพนักงานทั้งหมด</p>
         </div>
         <button
-          onClick={handleAddEmployee}
+          onClick={() => setShowAddModal(true)}
           className="flex items-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
         >
           <Plus className="w-4 h-4 mr-2" />
@@ -210,10 +226,13 @@ const EmployeePage = () => {
                   แผนก
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  แผนกย่อย
+                  ตำแหน่ง
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   อีเมล
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  เบอร์โทรศัพท์
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   สถานะ
@@ -226,11 +245,11 @@ const EmployeePage = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td colSpan="7" className="px-6 py-4 text-center">กำลังโหลด...</td>
+                  <td colSpan="8" className="px-6 py-4 text-center">กำลังโหลด...</td>
                 </tr>
               ) : filteredEmployees.length === 0 ? (
                 <tr>
-                  <td colSpan="7" className="px-6 py-4 text-center">ไม่พบข้อมูลพนักงาน</td>
+                  <td colSpan="8" className="px-6 py-4 text-center">ไม่พบข้อมูลพนักงาน</td>
                 </tr>
               ) : (
                 filteredEmployees.map((employee) => (
@@ -256,10 +275,13 @@ const EmployeePage = () => {
                       {employee.department || '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {employee.subdepartment || '-'}
+                      {employee.position || '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {employee.email || '-'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {employee.phone || '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
@@ -330,13 +352,25 @@ const EmployeePage = () => {
               <strong>แผนก:</strong> {selectedEmployee.department || '-'}
             </p>
             <p>
-              <strong>แผนกย่อย:</strong> {selectedEmployee.subdepartment || '-'}
+              <strong>ตำแหน่ง:</strong> {selectedEmployee.position || '-'}
             </p>
             <p>
               <strong>อีเมล:</strong> {selectedEmployee.email || '-'}
             </p>
             <p>
+              <strong>เบอร์โทรศัพท์:</strong> {selectedEmployee.phone || '-'}
+            </p>
+            <p>
+              <strong>รหัสเชิญ:</strong> {selectedEmployee.invite_code || '-'}
+            </p>
+            <p>
+              <strong>รหัสผู้ใช้:</strong> {selectedEmployee.user_id || '-'}
+            </p>
+            <p>
               <strong>สถานะ:</strong> {getStatusText(selectedEmployee.is_active)}
+            </p>
+            <p>
+              <strong>วันที่เริ่มงาน:</strong> {formatDate(selectedEmployee.hire_date)}
             </p>
             <p>
               <strong>วันที่สร้าง:</strong> {formatDate(selectedEmployee.created_at)}
@@ -344,6 +378,178 @@ const EmployeePage = () => {
             <p>
               <strong>วันที่อัพเดทล่าสุด:</strong> {formatDate(selectedEmployee.updated_at)}
             </p>
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => {
+                  setShowProfileModal(false);
+                  setSelectedEmployee(null);
+                }}
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
+              >
+                ปิด
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Employee Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+          <div className="bg-white w-full max-w-md mx-4 rounded shadow-lg p-4">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold">เพิ่มพนักงานใหม่</h2>
+              <button
+                onClick={() => setShowAddModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                x
+              </button>
+            </div>
+
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              const formData = new FormData(e.target);
+              const newEmployee = {
+                emp_code: formData.get('emp_code'),
+                name: formData.get('name'),
+                email: formData.get('email'),
+                phone: formData.get('phone'),
+                position: formData.get('position'),
+                department: formData.get('department'),
+                hire_date: formData.get('hire_date'),
+                invite_code: formData.get('invite_code'),
+                user_id: formData.get('user_id'),
+                is_active: "1"
+              };
+              
+              try {
+                await handleAddEmployee(newEmployee);
+                e.target.reset();
+                setShowAddModal(false);
+              } catch (error) {
+                console.error('Failed to add employee:', error);
+                alert('เกิดข้อผิดพลาดในการเพิ่มพนักงาน กรุณาลองใหม่อีกครั้ง');
+              }
+            }}>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">รหัสพนักงาน <span className="text-red-500">*</span></label>
+                  <input
+                    type="text"
+                    name="emp_code"
+                    required
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                    placeholder="กรอกรหัสพนักงาน"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">ชื่อ-นามสกุล <span className="text-red-500">*</span></label>
+                  <input
+                    type="text"
+                    name="name"
+                    required
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                    placeholder="กรอกชื่อ-นามสกุล"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">อีเมล <span className="text-red-500">*</span></label>
+                  <input
+                    type="email"
+                    name="email" 
+                    required
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                    placeholder="example@email.com"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">เบอร์โทรศัพท์ <span className="text-red-500">*</span></label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    required
+                    pattern="[0-9]{9,10}"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                    placeholder="0812345678"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">ตำแหน่ง <span className="text-red-500">*</span></label>
+                  <input
+                    type="text"
+                    name="position"
+                    required
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                    placeholder="กรอกตำแหน่ง"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">แผนก <span className="text-red-500">*</span></label>
+                  <select
+                    name="department"
+                    required
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                  >
+                    <option value="">เลือกแผนก</option>
+                    {departments.map(dept => (
+                      <option key={dept} value={dept}>{dept}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">วันที่เริ่มงาน <span className="text-red-500">*</span></label>
+                  <input
+                    type="date"
+                    name="hire_date"
+                    required
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">รหัสเชิญ</label>
+                  <input
+                    type="text"
+                    name="invite_code"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                    placeholder="กรอกรหัสเชิญ (ถ้ามี)"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">รหัสผู้ใช้</label>
+                  <input
+                    type="text"
+                    name="user_id"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                    placeholder="กรอกรหัสผู้ใช้ (ถ้ามี)"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-6 flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                >
+                  บันทึก
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
