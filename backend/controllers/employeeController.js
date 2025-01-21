@@ -1,7 +1,7 @@
 const db = require('../models/db');
 
 const addEmployee = async (req, res) => {
-    const { emp_code, name, email, is_active = 1, position, department, hire_date } = req.body;
+    const { emp_code, name, email, is_active = 1, position, department, hire_date, phone } = req.body;
   
     try {
       const conn = await db.getConnection();
@@ -19,8 +19,8 @@ const addEmployee = async (req, res) => {
       }
 
       const result = await conn.query(
-        "INSERT INTO PPGHR_employee_data (emp_code, name, email, is_active, position, department, hire_date) VALUES (?, ?, ?, ?, ?, ?, ?)",
-        [emp_code, name, email, is_active, position, department, hire_date]
+        "INSERT INTO PPGHR_employee_data (emp_code, name, email, is_active, position, department, hire_date, phone) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        [emp_code, name, email, is_active, position, department, hire_date, phone]
       );
   
       console.log("Insert result:", result);
@@ -35,6 +35,40 @@ const addEmployee = async (req, res) => {
     }
   };
 
+const updateEmployee = async (req, res) => {
+    const { emp_code, name, email, is_active, position, department, hire_date, phone } = req.body;
+
+    try {
+        const conn = await db.getConnection();
+
+        // ตรวจสอบว่าพนักงานที่ต้องการอัปเดตมีอยู่หรือไม่
+        const [existingEmployee] = await conn.query(
+            "SELECT * FROM PPGHR_employee_data WHERE emp_code = ?",
+            [emp_code]
+        );
+
+        if (!existingEmployee || existingEmployee.length === 0) {
+            conn.release(); // ปล่อยการเชื่อมต่อ
+            return res.status(404).json({
+                message: "Employee not found.",
+            });
+        }
+
+        // อัปเดตข้อมูลพนักงาน
+        const result = await conn.query(
+            "UPDATE PPGHR_employee_data SET name = ?, email = ?, is_active = ?, position = ?, department = ?, hire_date = ?, phone = ? WHERE emp_code = ?",
+            [name, email, is_active, position, department, hire_date, phone, emp_code]
+        );
+
+        conn.release();
+        res.status(200).json({
+            message: "Employee updated successfully!",
+        });
+    } catch (error) {
+        console.error("Error updating employee:", error);
+        res.status(500).json({ message: "Error updating employee.", error });
+    }
+};
 
 
 
@@ -78,4 +112,4 @@ const getAllEmployees = async (req, res) => {
 
 
 // ส่งออกฟังก์ชันทั้งหมด
-module.exports = { addEmployee, getAllEmployees };
+module.exports = { addEmployee, updateEmployee, getAllEmployees };
