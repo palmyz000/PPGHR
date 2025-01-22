@@ -23,7 +23,7 @@ const addEmployee = async (req, res) => {
         [emp_code, name, email, is_active, position, department, hire_date, phone]
       );
   
-      console.log("Insert result:", result);
+
   
       conn.release(); 
       res.status(201).json({
@@ -166,16 +166,43 @@ const getEmployeeStatistics = async (req, res) => {
     }
 };
 
+const deleteEmployee = async (req, res) => {
+    const { emp_code } = req.body; // รับ emp_code จาก request body
 
+    try {
+        const conn = await db.getConnection();
 
+        // ตรวจสอบว่าพนักงานที่ต้องการลบมีอยู่หรือไม่
+        const [existingEmployee] = await conn.query(
+            "SELECT * FROM PPGHR_employee_data WHERE emp_code = ?",
+            [emp_code]
+        );
 
+        if (!existingEmployee || existingEmployee.length === 0) {
+            conn.release(); // ปล่อยการเชื่อมต่อ
+            return res.status(404).json({
+                message: "Employee not found.",
+            });
+        }
 
+        // ลบพนักงาน
+        await conn.query(
+            "DELETE FROM PPGHR_employee_data WHERE emp_code = ?",
+            [emp_code]
+        );
 
+        conn.release(); // ปล่อยการเชื่อมต่อ
+        res.status(200).json({
+            message: "Employee deleted successfully!",
+        });
+    } catch (error) {
+        console.error("Error deleting employee:", error);
+        res.status(500).json({
+            message: "Error deleting employee.",
+            error: error.message,
+        });
+    }
+};
 
+module.exports = { addEmployee, updateEmployee, getAllEmployees, getEmployeeStatistics, deleteEmployee };
 
-
-
-
-
-// ส่งออกฟังก์ชันทั้งหมด
-module.exports = { addEmployee, updateEmployee, getAllEmployees, getEmployeeStatistics };
