@@ -396,7 +396,7 @@ const EmployeePage = () => {
       {/* Add Employee Modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
-          <div className="bg-white w-full max-w-md mx-4 rounded shadow-lg p-4">
+          <div className="bg-white w-full max-w-md mx-4 rounded shadow-lg p-4 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold">เพิ่มพนักงานใหม่</h2>
               <button
