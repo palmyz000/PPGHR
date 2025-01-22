@@ -107,7 +107,7 @@ const ReportsPage = () => {
     }
   };
 
-  const handleUpdateDocument = async (id, updatedData) => {
+  const handleUpdateDocument = async (doc_type_id, newAccessLevel) => {
     try {
       setLoading(true);
       setError(null);
@@ -118,8 +118,8 @@ const ReportsPage = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          id,
-          ...updatedData
+          doc_type_id,
+          access_level: newAccessLevel
         }),
       });
 
@@ -129,18 +129,57 @@ const ReportsPage = () => {
 
       const result = await response.json();
       if (result.success === false) {
-        throw new Error(result.message || 'Failed to update document');
+        throw new Error(result.message || 'Failed to update access_level');
       }
 
-      setSuccessMessage('อัพเดทข้อมูลสำเร็จ');
+      setSuccessMessage('อัปเดตระดับการเข้าถึงสำเร็จ');
       await fetchDocuments();
     } catch (error) {
-      console.error('Error updating document:', error);
-      setError('ไม่สามารถอัพเดทข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
+      console.error('Error updating access_level:', error);
+      setError('ไม่สามารถอัปเดตข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
     } finally {
       setLoading(false);
     }
   };
+
+
+
+  const handleDeleteDocument = async (id) => {
+    if (!window.confirm("คุณแน่ใจหรือไม่ว่าต้องการลบประเภทเอกสารนี้?")) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await fetch(`http://localhost:8000/api/documents/delete`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      if (result.success === false) {
+        throw new Error(result.message || "Failed to delete document");
+      }
+
+      setSuccessMessage("ลบประเภทเอกสารสำเร็จ");
+      await fetchDocuments(); // Refresh the list
+    } catch (error) {
+      console.error("Error deleting document:", error);
+      setError("ไม่สามารถลบเอกสารได้ กรุณาลองใหม่อีกครั้ง");
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   const filteredDocuments = documents.filter((doc) => {
     const matchSearch =
@@ -292,16 +331,25 @@ const ReportsPage = () => {
                       {formatDate(doc.created_at)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex space-x-2">
                       <button
-                        onClick={() => handleUpdateDocument(doc.id, {
-                          access_level: doc.access_level === 3 ? 1 : doc.access_level + 1
-                        })}
-                        className="text-blue-600 hover:text-blue-900 disabled:text-blue-300"
-                        disabled={loading}
-                      >
-                        เปลี่ยนระดับ
-                      </button>
+  onClick={() => handleUpdateDocument(doc.doc_type_id, doc.access_level === 3 ? 1 : doc.access_level + 1)}
+  className="text-blue-600 hover:text-blue-900 disabled:text-blue-300"
+  disabled={loading}
+>
+  เปลี่ยนระดับ
+</button>
+
+                        <button
+                          onClick={() => handleDeleteDocument(doc.id)}
+                          className="text-red-600 hover:text-red-900 disabled:text-red-300"
+                          disabled={loading}
+                        >
+                          ลบ
+                        </button>
+                      </div>
                     </td>
+
                   </tr>
                 ))
               )}

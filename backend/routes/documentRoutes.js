@@ -1,10 +1,12 @@
 const express = require('express');
-const { addDocumentType, updateDocument, getAllDocuments } = require('../controllers/documentController'); // นำเข้าฟังก์ชัน
+const { addDocumentType, updateDocumentType, getAllDocumentsType, deleteDocumentType } = require('../controllers/documentController'); // นำเข้าฟังก์ชัน
 
 const router = express.Router();
 
 router.post('/add', addDocumentType); 
-router.get('/all', getAllDocuments); 
-router.put('/update', updateDocument);
+router.get('/all', getAllDocumentsType); 
+router.put('/update', updateDocumentType);
+router.delete('/delete', deleteDocumentType);
+
 
 module.exports = router; // ส่งออก Router
