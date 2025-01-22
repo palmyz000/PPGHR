@@ -8,6 +8,8 @@ import {
   ChevronDown,
   MoreVertical,
 } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { ChevronRight, History, FileText, CheckCircle, Settings } from 'lucide-react';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 
@@ -113,7 +115,64 @@ const EmployeePage = () => {
       throw error;
     }
   };
+  // State สำหรับ Modal
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editEmployee, setEditEmployee] = useState({});
 
+  // กดปุ่มแก้ไข
+  const handleEditClick = (employee) => {
+    setEditEmployee(employee);
+    setShowEditModal(true);
+  };
+
+  // อัปเดตข้อมูลพนักงาน
+  const handleUpdateEmployee = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/api/employees/update', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(editEmployee),
+      });
+
+      if (!response.ok) {
+        throw new Error('Error updating employee');
+      }
+
+      alert('แก้ไขข้อมูลสำเร็จ');
+      setShowEditModal(false);
+      fetchEmployees(); // อัปเดตตารางพนักงาน
+    } catch (error) {
+      console.error('Error updating employee:', error);
+      alert('เกิดข้อผิดพลาดในการแก้ไขข้อมูล');
+    }
+  };
+
+  // กดปุ่มลบ
+  const handleDeleteClick = async (emp_code) => {
+    if (window.confirm('คุณต้องการลบพนักงานนี้ใช่หรือไม่?')) {
+      try {
+        const response = await fetch('http://localhost:8000/api/employees/delete', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ emp_code }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Error deleting employee');
+        }
+
+        alert('ลบข้อมูลสำเร็จ');
+        fetchEmployees(); // อัปเดตตารางพนักงาน
+      } catch (error) {
+        console.error('Error deleting employee:', error);
+        alert('เกิดข้อผิดพลาดในการลบข้อมูล');
+      }
+    }
+  };
   const handleCsvUpload = () => {
     if (!csvFile) {
       alert("กรุณาเลือกไฟล์ CSV");
@@ -415,7 +474,7 @@ const EmployeePage = () => {
                                   <li>
                                     <button
                                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
-                                      onClick={() => console.log('แก้ไข', employee)}
+                                      onClick={() => handleEditClick(employee)}
                                     >
                                       แก้ไข
                                     </button>
@@ -423,7 +482,7 @@ const EmployeePage = () => {
                                   <li>
                                     <button
                                       className="block px-4 py-2 text-sm text-red-700 hover:bg-red-100 w-full text-left"
-                                      onClick={() => console.log('ลบ', employee)}
+                                      onClick={() => handleDeleteClick(employee.emp_code)}
                                     >
                                       ลบ
                                     </button>
@@ -432,6 +491,102 @@ const EmployeePage = () => {
                               </div>
                             )}
                           </div>
+
+                          {/* Modal สำหรับแก้ไขข้อมูล */}
+                          {showEditModal && (
+                            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+                              <div className="bg-white w-full max-w-md mx-4 rounded shadow-lg p-4">
+                                <h2 className="text-xl font-semibold mb-4">แก้ไขข้อมูลพนักงาน</h2>
+                                <form
+                                  onSubmit={(e) => {
+                                    e.preventDefault();
+                                    handleUpdateEmployee();
+                                  }}
+                                >
+                                  <div className="space-y-4">
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-700">ชื่อ-นามสกุล</label>
+                                      <input
+                                        type="text"
+                                        value={editEmployee.name}
+                                        onChange={(e) => setEditEmployee({ ...editEmployee, name: e.target.value })}
+                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                                        required
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-700">ตำแหน่ง</label>
+                                      <input
+                                        type="text"
+                                        value={editEmployee.position}
+                                        onChange={(e) => setEditEmployee({ ...editEmployee, position: e.target.value })}
+                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                                        required
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-700">แผนก</label>
+                                      <input
+                                        type="text"
+                                        value={editEmployee.department}
+                                        onChange={(e) => setEditEmployee({ ...editEmployee, department: e.target.value })}
+                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                                        required
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-700">เบอร์โทรศัพท์</label>
+                                      <input
+                                        type="tel"
+                                        value={editEmployee.phone}
+                                        onChange={(e) => setEditEmployee({ ...editEmployee, phone: e.target.value })}
+                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                                        pattern="[0-9]{9,10}"
+                                        required
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-700">อีเมล</label>
+                                      <input
+                                        type="email"
+                                        value={editEmployee.email}
+                                        onChange={(e) => setEditEmployee({ ...editEmployee, email: e.target.value })}
+                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                                        required
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-700">วันที่เริ่มงาน</label>
+                                      <input
+                                        type="date"
+                                        value={editEmployee.hire_date}
+                                        onChange={(e) => setEditEmployee({ ...editEmployee, hire_date: e.target.value })}
+                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                                        required
+                                      />
+                                    </div>
+                                  </div>
+                                  <div className="mt-6 flex justify-end space-x-3">
+                                    <button
+                                      type="button"
+                                      onClick={() => setShowEditModal(false)}
+                                      className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                                    >
+                                      ยกเลิก
+                                    </button>
+                                    <button
+                                      type="submit"
+                                      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                                    >
+                                      บันทึก
+                                    </button>
+                                  </div>
+                                </form>
+                              </div>
+                            </div>
+                          )}
+
+
                         </td>
 
                       </div>
