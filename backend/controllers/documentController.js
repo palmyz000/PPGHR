@@ -92,9 +92,7 @@ const getAllDocumentsType = async (req, res) => {
             SELECT * FROM PPGHR_document_types; 
         `;
 
-        const rows = await conn.query(query); 
-
-        conn.release(); 
+        const rows = await conn.query(query);
 
         if (!rows || rows.length === 0) {
             return res.status(404).json({
@@ -103,22 +101,21 @@ const getAllDocumentsType = async (req, res) => {
             });
         }
 
-        // ส่ง JSON พร้อมข้อมูล
         res.status(200).json({
             message: "ดึงข้อมูลเอกสารสำเร็จ",
             data: rows,
         });
     } catch (error) {
-        if (conn) conn.release(); 
         console.error("Error fetching doc_type_name:", error);
-
-        // ส่ง JSON สำหรับข้อผิดพลาด
         res.status(500).json({
             message: "เกิดข้อผิดพลาดในการดึงข้อมูล",
             error: error.message,
         });
+    } finally {
+        if (conn) conn.release(); // Ensure connection is released
     }
 };
+
 
 
 const deleteDocumentType = async (req, res) => {

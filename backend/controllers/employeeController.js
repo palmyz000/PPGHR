@@ -136,8 +136,6 @@ const getEmployeeStatistics = async (req, res) => {
             "SELECT MONTH(hire_date) AS month, COUNT(*) AS count FROM PPGHR_employee_data WHERE YEAR(hire_date) = YEAR(CURRENT_DATE()) AND is_active = 1 GROUP BY MONTH(hire_date) ORDER BY month"
         );
 
-        console.log("Monthly Results Raw:", monthlyResults);
-
         // แปลงข้อมูล monthlyResults
         let monthlyStatistics = [];
         if (Array.isArray(monthlyResults)) {
