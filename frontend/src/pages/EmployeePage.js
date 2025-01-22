@@ -25,7 +25,7 @@ const EmployeePage = () => {
     { value: "1", label: "ทำงาน" },
     { value: "0", label: "ลางาน" },
   ];
-
+const [showAlert, setShowAlert] = useState(false);
   // Fetch employees from API
   useEffect(() => {
     fetchEmployees();
@@ -79,7 +79,7 @@ const EmployeePage = () => {
         phone: newEmployeeData.phone,
         user_id: newEmployeeData.user_id
       };
-
+  
       const response = await fetch('http://localhost:8000/api/employees/add', {
         method: 'POST',
         headers: {
@@ -87,20 +87,23 @@ const EmployeePage = () => {
         },
         body: JSON.stringify(employeePayload),
       });
-
+  
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || 'Failed to add employee');
       }
-
-      await fetchEmployees(); // Refresh the list
-      setShowAddModal(false); // Close the modal after successful addition
-      return true;
-    } catch (error) {
-      console.error('Error adding employee:', error);
-      throw error;
-    }
-  };
+  
+      await fetchEmployees();
+    setShowAddModal(false);
+    setShowAlert(true); // แสดง alert
+    setTimeout(() => setShowAlert(false), 3000); // ซ่อน alert หลังจาก 3 วินาที
+    return true;
+  } catch (error) {
+    console.error('Error adding employee:', error);
+    alert('เกิดข้อผิดพลาดในการเพิ่มพนักงาน กรุณาลองใหม่อีกครั้ง');
+    throw error;
+  }
+};
 
   const getStatusBadgeClass = (status) => {
     if (status === 1 || status === '1') {
@@ -131,7 +134,17 @@ const EmployeePage = () => {
   };
 
   return (
+    
     <div className="min-h-screen bg-gray-50 p-6">
+      {/* Alert Component */}
+      {showAlert && (
+        <div className="fixed top-4 right-4 z-50">
+          <div className="bg-green-100 border border-green-500 text-green-700 px-4 py-3 rounded relative" role="alert">
+            <strong className="font-bold">สำเร็จ!</strong>
+            <span className="block sm:inline"> เพิ่มข้อมูลพนักงานเรียบร้อยแล้ว</span>
+          </div>
+        </div>
+      )}
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
@@ -513,25 +526,7 @@ const EmployeePage = () => {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">รหัสเชิญ</label>
-                  <input
-                    type="text"
-                    name="invite_code"
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
-                    placeholder="กรอกรหัสเชิญ (ถ้ามี)"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">รหัสผู้ใช้</label>
-                  <input
-                    type="text"
-                    name="user_id"
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
-                    placeholder="กรอกรหัสผู้ใช้ (ถ้ามี)"
-                  />
-                </div>
+              
               </div>
 
               <div className="mt-6 flex justify-end space-x-3">
