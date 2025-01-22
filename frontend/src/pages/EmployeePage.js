@@ -8,6 +8,7 @@ import {
   ChevronDown,
   MoreVertical,
 } from 'lucide-react';
+import Papa from 'papaparse';
 
 const EmployeePage = () => {
   // States
@@ -25,11 +26,18 @@ const EmployeePage = () => {
     { value: "1", label: "ทำงาน" },
     { value: "0", label: "ลางาน" },
   ];
-const [showAlert, setShowAlert] = useState(false);
+  const [showAlert, setShowAlert] = useState(false);
   // Fetch employees from API
   useEffect(() => {
     fetchEmployees();
   }, []);
+
+  const [showDropdown, setShowDropdown] = useState(null);
+
+  const toggleDropdown = (empCode) => {
+    setShowDropdown((prev) => (prev === empCode ? null : empCode));
+  };
+
 
   const fetchEmployees = async () => {
     try {
@@ -79,7 +87,7 @@ const [showAlert, setShowAlert] = useState(false);
         phone: newEmployeeData.phone,
         user_id: newEmployeeData.user_id
       };
-  
+
       const response = await fetch('http://localhost:8000/api/employees/add', {
         method: 'POST',
         headers: {
@@ -87,23 +95,73 @@ const [showAlert, setShowAlert] = useState(false);
         },
         body: JSON.stringify(employeePayload),
       });
-  
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || 'Failed to add employee');
       }
-  
+
       await fetchEmployees();
-    setShowAddModal(false);
-    setShowAlert(true); // แสดง alert
-    setTimeout(() => setShowAlert(false), 3000); // ซ่อน alert หลังจาก 3 วินาที
-    return true;
-  } catch (error) {
-    console.error('Error adding employee:', error);
-    alert('เกิดข้อผิดพลาดในการเพิ่มพนักงาน กรุณาลองใหม่อีกครั้ง');
-    throw error;
-  }
-};
+      setShowAddModal(false);
+      setShowAlert(true); // แสดง alert
+      setTimeout(() => setShowAlert(false), 3000); // ซ่อน alert หลังจาก 3 วินาที
+      return true;
+    } catch (error) {
+      console.error('Error adding employee:', error);
+      alert('เกิดข้อผิดพลาดในการเพิ่มพนักงาน กรุณาลองใหม่อีกครั้ง');
+      throw error;
+    }
+  };
+
+  const handleCsvUpload = () => {
+    if (!csvFile) {
+      alert("กรุณาเลือกไฟล์ CSV");
+      return;
+    }
+  
+    Papa.parse(csvFile, {
+      header: true,
+      skipEmptyLines: true,
+      complete: async (results) => {
+        const employees = results.data;
+  
+        // Debug: ตรวจสอบค่าที่อ่านมา
+        console.log("Parsed CSV Data:", employees);
+  
+        try {
+          for (const employee of employees) {
+            console.log("Sending employee data:", employee);
+  
+            const response = await fetch('http://localhost:8000/api/employees/add', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(employee),
+            });
+  
+            if (!response.ok) {
+              const error = await response.json();
+              console.error(`Error adding employee: ${employee.emp_code}`, error);
+            }
+          }
+          alert("นำเข้าข้อมูลสำเร็จ");
+          setShowCsvModal(false);
+          fetchEmployees(); // Refresh the table
+        } catch (error) {
+          console.error("Error uploading CSV:", error);
+          alert("เกิดข้อผิดพลาดในการนำเข้าไฟล์ CSV");
+        }
+      },
+      error: (error) => {
+        console.error("Error parsing CSV:", error);
+        alert("ไม่สามารถอ่านไฟล์ CSV ได้");
+      },
+    });
+  };
+  
+  const [showCsvModal, setShowCsvModal] = useState(false);
+  const [csvFile, setCsvFile] = useState(null);
 
   const getStatusBadgeClass = (status) => {
     if (status === 1 || status === '1') {
@@ -134,7 +192,7 @@ const [showAlert, setShowAlert] = useState(false);
   };
 
   return (
-    
+
     <div className="min-h-screen bg-gray-50 p-6">
       {/* Alert Component */}
       {showAlert && (
@@ -206,12 +264,13 @@ const [showAlert, setShowAlert] = useState(false);
 
           <div className="flex gap-2">
             <button
-              onClick={() => console.log('Import clicked')}
+              onClick={() => setShowCsvModal(true)}
               className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
               title="นำเข้าข้อมูล"
             >
               <Upload className="w-5 h-5" />
             </button>
+
             <button
               onClick={() => console.log('Export clicked')}
               className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
@@ -316,9 +375,39 @@ const [showAlert, setShowAlert] = useState(false);
                         >
                           ดูข้อมูล
                         </button>
-                        <button className="text-gray-400 hover:text-gray-600">
-                          <MoreVertical className="w-5 h-5" />
-                        </button>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <div className="relative">
+                            <button
+                              onClick={() => toggleDropdown(employee.emp_code)}
+                              className="text-gray-400 hover:text-gray-600"
+                            >
+                              <MoreVertical className="w-5 h-5" />
+                            </button>
+                            {showDropdown === employee.emp_code && (
+                              <div className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg">
+                                <ul className="py-1">
+                                  <li>
+                                    <button
+                                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                                      onClick={() => console.log('แก้ไข', employee)}
+                                    >
+                                      แก้ไข
+                                    </button>
+                                  </li>
+                                  <li>
+                                    <button
+                                      className="block px-4 py-2 text-sm text-red-700 hover:bg-red-100 w-full text-left"
+                                      onClick={() => console.log('ลบ', employee)}
+                                    >
+                                      ลบ
+                                    </button>
+                                  </li>
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        </td>
+
                       </div>
                     </td>
                   </tr>
@@ -339,6 +428,58 @@ const [showAlert, setShowAlert] = useState(false);
           </div>
         </div>
       </div>
+      {showCsvModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+          <div className="bg-white w-full max-w-md mx-4 rounded shadow-lg p-4">
+            <h2 className="text-xl font-semibold mb-4">นำเข้าข้อมูลจาก CSV</h2>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleCsvUpload();
+              }}
+            >
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">เลือกไฟล์ CSV</label>
+                  <input
+                    type="file"
+                    accept=".csv"
+                    onChange={(e) => setCsvFile(e.target.files[0])}
+                    required
+                    className="mt-1 block w-full"
+                  />
+                </div>
+              </div>
+              <div className="mt-6 flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={() => setShowCsvModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                >
+                  อัปโหลด
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+
+
+
+
+
+
+
+
+
+
 
       {/* View Employee Modal */}
       {showProfileModal && selectedEmployee && (
@@ -435,7 +576,7 @@ const [showAlert, setShowAlert] = useState(false);
                 user_id: formData.get('user_id'),
                 is_active: "1"
               };
-              
+
               try {
                 await handleAddEmployee(newEmployee);
                 e.target.reset();
@@ -456,7 +597,7 @@ const [showAlert, setShowAlert] = useState(false);
                     placeholder="กรอกรหัสพนักงาน"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700">ชื่อ-นามสกุล <span className="text-red-500">*</span></label>
                   <input
@@ -472,7 +613,7 @@ const [showAlert, setShowAlert] = useState(false);
                   <label className="block text-sm font-medium text-gray-700">อีเมล <span className="text-red-500">*</span></label>
                   <input
                     type="email"
-                    name="email" 
+                    name="email"
                     required
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
                     placeholder="example@email.com"
@@ -526,7 +667,7 @@ const [showAlert, setShowAlert] = useState(false);
                   />
                 </div>
 
-              
+
               </div>
 
               <div className="mt-6 flex justify-end space-x-3">
