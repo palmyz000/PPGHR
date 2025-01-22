@@ -8,6 +8,8 @@ import {
   ChevronDown,
   MoreVertical,
 } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { ChevronRight, History, FileText, CheckCircle, Settings } from 'lucide-react';
 
 const EmployeePage = () => {
   // States
