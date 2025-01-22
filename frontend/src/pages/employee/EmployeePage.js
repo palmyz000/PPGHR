@@ -8,13 +8,8 @@ import {
   ChevronDown,
   MoreVertical,
 } from 'lucide-react';
-<<<<<<< HEAD:frontend/src/pages/employee/EmployeePage.js
-import { Link, useLocation } from 'react-router-dom';
-import { ChevronRight, History, FileText, CheckCircle, Settings } from 'lucide-react';
-=======
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
->>>>>>> ada2c4aec5c5f75762c2a425d122276052002b13:frontend/src/pages/EmployeePage.js
 
 const EmployeePage = () => {
   // States
@@ -30,7 +25,7 @@ const EmployeePage = () => {
   const departments = ['IT', 'Marketing', 'Sales', 'Finance', 'HR'];
   const statuses = [
     { value: "1", label: "ทำงาน" },
-    { value: "0", label: "ลางาน" },
+    { value: "0", label: "หยุดงาน" },
   ];
   const [showAlert, setShowAlert] = useState(false);
   // Fetch employees from API
@@ -179,7 +174,7 @@ const EmployeePage = () => {
       "ตำแหน่ง": employee.position,
       "อีเมล": employee.email,
       "เบอร์โทรศัพท์": employee.phone,
-      "สถานะ": employee.is_active === 1 ? "ทำงาน" : "ลางาน",
+      "สถานะ": employee.is_active === 1 ? "ทำงาน" : "หยุดงาน",
       "วันที่เริ่มงาน": employee.hire_date,
     })));
 
@@ -204,7 +199,7 @@ const EmployeePage = () => {
     if (status === 1 || status === '1') {
       return 'ทำงาน';
     }
-    return 'ลางาน';
+    return 'หยุดงาน';
   };
 
   // Format date helper
@@ -521,7 +516,7 @@ const EmployeePage = () => {
                 setShowProfileModal(false);
                 setSelectedEmployee(null);
               }}
-              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+              className="absolute top-2 right-4 text-gray-500 hover:text-gray-700"
             >
               x
             </button>
@@ -544,12 +539,6 @@ const EmployeePage = () => {
             </p>
             <p>
               <strong>เบอร์โทรศัพท์:</strong> {selectedEmployee.phone || '-'}
-            </p>
-            <p>
-              <strong>รหัสเชิญ:</strong> {selectedEmployee.invite_code || '-'}
-            </p>
-            <p>
-              <strong>รหัสผู้ใช้:</strong> {selectedEmployee.user_id || '-'}
             </p>
             <p>
               <strong>สถานะ:</strong> {getStatusText(selectedEmployee.is_active)}

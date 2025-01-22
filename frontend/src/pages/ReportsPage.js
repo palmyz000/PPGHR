@@ -332,13 +332,13 @@ const ReportsPage = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex space-x-2">
-                      <button
-  onClick={() => handleUpdateDocument(doc.doc_type_id, doc.access_level === 3 ? 1 : doc.access_level + 1)}
-  className="text-blue-600 hover:text-blue-900 disabled:text-blue-300"
-  disabled={loading}
->
-  เปลี่ยนระดับ
-</button>
+                        <button
+                          onClick={() => handleUpdateDocument(doc.doc_type_id, doc.access_level === 3 ? 1 : doc.access_level + 1)}
+                          className="text-blue-600 hover:text-blue-900 disabled:text-blue-300"
+                          disabled={loading}
+                        >
+                          เปลี่ยนระดับ
+                        </button>
 
                         <button
                           onClick={() => handleDeleteDocument(doc.id)}

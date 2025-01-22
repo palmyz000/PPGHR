@@ -23,7 +23,7 @@ const addEmployee = async (req, res) => {
         [emp_code, name, email, is_active, position, department, hire_date, phone]
       );
   
-      console.log("Insert result:", result);
+
   
       conn.release(); 
       res.status(201).json({
