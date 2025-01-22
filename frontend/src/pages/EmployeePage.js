@@ -9,6 +9,7 @@ import {
   MoreVertical,
 } from 'lucide-react';
 import Papa from 'papaparse';
+import * as XLSX from 'xlsx';
 
 const EmployeePage = () => {
   // States
@@ -118,20 +119,20 @@ const EmployeePage = () => {
       alert("กรุณาเลือกไฟล์ CSV");
       return;
     }
-  
+
     Papa.parse(csvFile, {
       header: true,
       skipEmptyLines: true,
       complete: async (results) => {
         const employees = results.data;
-  
+
         // Debug: ตรวจสอบค่าที่อ่านมา
         console.log("Parsed CSV Data:", employees);
-  
+
         try {
           for (const employee of employees) {
             console.log("Sending employee data:", employee);
-  
+
             const response = await fetch('http://localhost:8000/api/employees/add', {
               method: 'POST',
               headers: {
@@ -139,7 +140,7 @@ const EmployeePage = () => {
               },
               body: JSON.stringify(employee),
             });
-  
+
             if (!response.ok) {
               const error = await response.json();
               console.error(`Error adding employee: ${employee.emp_code}`, error);
@@ -159,7 +160,31 @@ const EmployeePage = () => {
       },
     });
   };
-  
+  const handleDownloadExcel = () => {
+    if (filteredEmployees.length === 0) {
+      alert("ไม่มีข้อมูลสำหรับดาวน์โหลด");
+      return;
+    }
+
+    // สร้างข้อมูล Excel จากข้อมูลพนักงานที่กรองแล้ว
+    const worksheet = XLSX.utils.json_to_sheet(filteredEmployees.map(employee => ({
+      "รหัสพนักงาน": employee.emp_code,
+      "ชื่อ-นามสกุล": employee.name,
+      "แผนก": employee.department,
+      "ตำแหน่ง": employee.position,
+      "อีเมล": employee.email,
+      "เบอร์โทรศัพท์": employee.phone,
+      "สถานะ": employee.is_active === 1 ? "ทำงาน" : "ลางาน",
+      "วันที่เริ่มงาน": employee.hire_date,
+    })));
+
+    // สร้าง Workbook
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "พนักงาน");
+
+    // บันทึกไฟล์ Excel
+    XLSX.writeFile(workbook, "รายชื่อพนักงาน.xlsx");
+  };
   const [showCsvModal, setShowCsvModal] = useState(false);
   const [csvFile, setCsvFile] = useState(null);
 
@@ -272,12 +297,13 @@ const EmployeePage = () => {
             </button>
 
             <button
-              onClick={() => console.log('Export clicked')}
+              onClick={handleDownloadExcel}
               className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
               title="ส่งออกข้อมูล"
             >
               <Download className="w-5 h-5" />
             </button>
+
           </div>
         </div>
       </div>
