@@ -8,13 +8,11 @@ import {
   ChevronDown,
   MoreVertical,
 } from 'lucide-react';
-<<<<<<< HEAD:frontend/src/pages/employee/EmployeePage.js
 import { Link, useLocation } from 'react-router-dom';
 import { ChevronRight, History, FileText, CheckCircle, Settings } from 'lucide-react';
-=======
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
->>>>>>> ada2c4aec5c5f75762c2a425d122276052002b13:frontend/src/pages/EmployeePage.js
+
 
 const EmployeePage = () => {
   // States

@@ -6,9 +6,9 @@ const EmployeeNavigation = () => {
   const location = useLocation();
 
   const navItems = [
-    { path: '/employee-portal', label: 'หน้าหลัก', icon: ChevronRight },
+    { path: '/employee/layout', label: 'หน้าหลัก', icon: ChevronRight },
     { path: '/employee/documents', label: 'เอกสารของพนักงาน', icon: History },
-    { path: '/employee/layout', label: 'เค้าโครงพนักงาน', icon: FileText },
+    { path: '/employee-portal', label: 'เค้าโครงพนักงาน', icon: FileText },
     { path: '/employee/payroll', label: 'หน้าพนักงาน', icon: CheckCircle },
     { path: '/employee/timesheet', label: 'การบันทึกเวลา', icon: Settings }
   ];
