@@ -1,4 +1,4 @@
-const db = require('../models/db');
+const db = require('../../models/db');
 
 const addEmployee = async (req, res) => {
     const { emp_code, name, email, is_active = 1, position, department, hire_date, phone } = req.body;

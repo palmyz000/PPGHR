@@ -6,11 +6,10 @@ const pool = mariadb.createPool({
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  connectionLimit: 1,
+  connectionLimit: 5, // เพิ่ม Connection Limit เพื่อรองรับ Multiple Requests
   supportBigNumbers: true,
   bigNumberStrings: true,
 });
-
 
 const connectDB = async () => {
   try {
@@ -22,7 +21,34 @@ const connectDB = async () => {
   }
 };
 
+// ฟังก์ชัน Query ที่รองรับ Multi-Tenant
+const query = async (sql, params = [], tenantId = null) => {
+  let tenantParams = params;
+  if (tenantId) {
+    tenantParams = [tenantId, ...params];
+  }
+
+  try {
+    const conn = await pool.getConnection();
+    const rows = await conn.query(sql, tenantParams);
+    conn.release();
+    return rows;
+  } catch (error) {
+    console.error("Database query error:", error);
+    throw error;
+  }
+};
+
+// ฟังก์ชันสำหรับดึง Connection แบบ Manual (หากต้องการ)
+const getConnection = async () => {
+  try {
+    return await pool.getConnection();
+  } catch (error) {
+    console.error("Error getting connection:", error);
+    throw error;
+  }
+};
 
 connectDB();
 
-module.exports = pool;
+module.exports = { pool, query, getConnection };

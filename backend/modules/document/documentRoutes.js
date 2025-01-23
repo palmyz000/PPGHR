@@ -1,5 +1,5 @@
 const express = require('express');
-const { addDocumentType, updateDocumentType, getAllDocumentsType, deleteDocumentType } = require('../controllers/documentController'); // นำเข้าฟังก์ชัน
+const { addDocumentType, updateDocumentType, getAllDocumentsType, deleteDocumentType } = require('./documentController'); // นำเข้าฟังก์ชัน
 
 const router = express.Router();
 
