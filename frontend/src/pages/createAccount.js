@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
+
 const CreateAccount = () => {
   const [tenants, setTenants] = useState([]); // เก็บข้อมูล Tenant
   const [employees, setEmployees] = useState([]); // เก็บข้อมูลพนักงานทั้งหมด
@@ -107,66 +108,81 @@ const CreateAccount = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div>
-        <label>เลือก Tenant:</label>
-        <select
-          onChange={(e) => setSelectedTenantName(e.target.value)}
-          value={selectedTenantName}
-        >
-          <option value="">-- เลือก Tenant --</option>
-          {tenants.map((tenant) => (
-            <option key={tenant.tenant_id} value={tenant.tenant_name}>
-              {tenant.tenant_name}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div>
-        <label>เลือกพนักงาน:</label>
-        <select
-          onChange={(e) => setSelectedEmpCode(e.target.value)}
-          value={selectedEmpCode}
-          disabled={!selectedTenantName}
-        >
-          <option value="">-- เลือกพนักงาน --</option>
-          {filteredEmployees.map((emp) => (
-            <option key={emp.emp_code} value={emp.emp_code}>
-              {emp.name} ({emp.position})
-            </option>
-          ))}
-        </select>
-      </div>
-      <div>
-        <label>Email:</label>
-        <input
-          type="email"
-          value={formData.email}
-          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          required
-        />
-      </div>
-      <div>
-        <label>Password:</label>
-        <input
-          type="password"
-          value={formData.password}
-          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-          required
-        />
-      </div>
-      <div>
-        <label>Role:</label>
-        <select
-          value={formData.role}
-          onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-        >
-          <option value="employee">Employee</option>
-          <option value="admin">Admin</option>
-        </select>
-      </div>
-      <button type="submit">สร้างบัญชี</button>
-    </form>
+    <div className="container mt-5">
+      <h2 className="text-center mb-4">สร้างบัญชีผู้ใช้งาน</h2>
+      <form onSubmit={handleSubmit} className="card p-4 shadow-sm">
+        <div className="mb-3">
+          <label className="form-label">เลือก Tenant:</label>
+          <select
+            className="form-select"
+            onChange={(e) => setSelectedTenantName(e.target.value)}
+            value={selectedTenantName}
+          >
+            <option value="">-- เลือก Tenant --</option>
+            {tenants.map((tenant) => (
+              <option key={tenant.tenant_id} value={tenant.tenant_name}>
+                {tenant.tenant_name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="mb-3">
+          <label className="form-label">เลือกพนักงาน:</label>
+          <select
+            className="form-select"
+            onChange={(e) => setSelectedEmpCode(e.target.value)}
+            value={selectedEmpCode}
+            disabled={!selectedTenantName}
+          >
+            <option value="">-- เลือกพนักงาน --</option>
+            {filteredEmployees.map((emp) => (
+              <option key={emp.emp_code} value={emp.emp_code}>
+                {emp.name} ({emp.position})
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="mb-3">
+          <label className="form-label">Email:</label>
+          <input
+            type="email"
+            className="form-control"
+            value={formData.email}
+            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            required
+          />
+        </div>
+
+        <div className="mb-3">
+          <label className="form-label">Password:</label>
+          <input
+            type="password"
+            className="form-control"
+            value={formData.password}
+            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+            required
+          />
+        </div>
+
+        <div className="mb-3">
+          <label className="form-label">Role:</label>
+          <select
+            className="form-select"
+            value={formData.role}
+            onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+          >
+            <option value="employee">Employee</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+
+        <button type="submit" className="btn btn-primary w-100">
+          สร้างบัญชี
+        </button>
+      </form>
+    </div>
   );
 };
 
