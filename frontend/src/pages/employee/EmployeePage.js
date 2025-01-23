@@ -12,10 +12,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { ChevronRight, History, FileText, CheckCircle, Settings } from 'lucide-react';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
-<<<<<<< HEAD
 
-=======
->>>>>>> 245257bce09b8b46815e0a6e6728ef629660c2e3
 
 const EmployeePage = () => {
   // States

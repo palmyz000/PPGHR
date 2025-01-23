@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const { addSalaryBase } = require('../controllers/payrollController');
+const { getPayrollData } = require('../controllers/payrollController');
 
-// Route สำหรับเพิ่ม Salary Base
-router.post('/add', addSalaryBase);
+// Route สำหรับดึงข้อมูล Payroll
+router.get('/all-payroll', getPayrollData);
 
 module.exports = router;

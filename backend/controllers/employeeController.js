@@ -54,7 +54,6 @@ const updateEmployee = async (req, res) => {
             });
         }
 
-        // อัปเดตข้อมูลพนักงาน
         const result = await conn.query(
             "UPDATE PPGHR_employee_data SET name = ?, email = ?, is_active = ?, position = ?, department = ?, hire_date = ?, phone = ? WHERE emp_code = ?",
             [name, email, is_active, position, department, hire_date, phone, emp_code]
@@ -81,7 +80,7 @@ const getAllEmployees = async (req, res) => {
             SELECT * FROM PPGHR_employee_data; 
         `;
 
-        const rows = await conn.query(query); // Query ข้อมูล
+        const rows = await conn.query(query); 
 
         conn.release(); 
 
@@ -92,7 +91,6 @@ const getAllEmployees = async (req, res) => {
             });
         }
 
-        // ส่ง JSON พร้อมข้อมูล
         res.status(200).json({
             message: "ดึงข้อมูลพนักงานสำเร็จ",
             data: rows,
@@ -101,7 +99,6 @@ const getAllEmployees = async (req, res) => {
         if (conn) conn.release(); 
         console.error("Error fetching employees:", error);
 
-        // ส่ง JSON สำหรับข้อผิดพลาด
         res.status(500).json({
             message: "เกิดข้อผิดพลาดในการดึงข้อมูล",
             error: error.message,
@@ -167,7 +164,7 @@ const getEmployeeStatistics = async (req, res) => {
 };
 
 const deleteEmployee = async (req, res) => {
-    const { emp_code } = req.body; // รับ emp_code จาก request body
+    const { emp_code } = req.body; 
 
     try {
         const conn = await db.getConnection();
@@ -179,7 +176,7 @@ const deleteEmployee = async (req, res) => {
         );
 
         if (!existingEmployee || existingEmployee.length === 0) {
-            conn.release(); // ปล่อยการเชื่อมต่อ
+            conn.release(); 
             return res.status(404).json({
                 message: "Employee not found.",
             });
@@ -191,7 +188,7 @@ const deleteEmployee = async (req, res) => {
             [emp_code]
         );
 
-        conn.release(); // ปล่อยการเชื่อมต่อ
+        conn.release(); 
         res.status(200).json({
             message: "Employee deleted successfully!",
         });
