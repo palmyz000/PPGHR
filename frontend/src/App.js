@@ -19,7 +19,7 @@ import EmployeeTimesheet from './pages/employee/EmployeeTimesheet';
 import EmployeeLeave from './pages/employee/EmployeeLeave';
 import EmployeeLayout from './pages/employee/EmployeeLayout';
 import Login from './pages/login';  
-import Signup from './pages/Signup';
+import CreateAccount from './pages/createAccount';
 const App = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
 
@@ -42,7 +42,7 @@ const App = () => {
         <Route path="/payroll/document" element={<PayrollDocument />} />
         <Route path="/payroll/settings" element={<PayrollSettings />} />
        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
+        <Route path="/createaccount" element={<CreateAccount />} />
 
         {/* Employee Routes */}
         <Route path="/employee-portal" element={<EmployeePortal />} />
