@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
-import Dashboard from './pages/Dashboard';
-import EmployeePage from './pages/employee/EmployeePage';
-import LeavePage from './pages/LeavePage';
-import PayrollPage from './pages/payroll/PayrollPage';
-import EvaluationPage from './pages/Eva/EvaluationPage';
-import ReportsPage from './pages/ReportsPage';
+import Dashboard from './pages/HR/Dashboard';
+import EmployeePage from './pages/HR/EmployeePage';
+import LeavePage from './pages/HR/LeavePage';
+import PayrollPage from './pages/HR/PayrollPage';
+import EvaluationPage from './pages/HR/EvaluationPage';
+import ReportsPage from './pages/HR/ReportsPage';
 import PayrollHistory from './pages/payroll/PayrollHistory';
 import PayrollStructure from './pages/payroll/PayrollStructure';
 import PayrollApproval from './pages/payroll/PayrollApproval';

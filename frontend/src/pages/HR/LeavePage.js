@@ -1,7 +1,7 @@
 // LeavePage.js
 import React, { useState } from 'react';
 import { Search, Filter, Plus, Calendar, Clock, ChevronDown, MoreVertical } from 'lucide-react';
-import Navbar from '../components/Navbar';
+import Navbar from '../../components/Navbar';
 
 const LeavePage = () => {
   const [selectedStatus, setSelectedStatus] = useState('all');
