@@ -1,8 +1,8 @@
 const express = require('express');
 const cors = require('cors');
-const employeeRoutes = require('./routes/employeeRoutes');
-const documentRoutes = require('./routes/documentRoutes');
-const payrollRoutes = require('./routes/payrollRoutes');
+const employeeRoutes = require('./modules/employee/employeeRoutes');
+const documentRoutes = require('./modules/document/documentRoutes');
+const payrollRoutes = require('./modules/payroll/payrollRoutes');
 require('dotenv').config();
 
 const app = express();

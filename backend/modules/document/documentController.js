@@ -1,4 +1,4 @@
-const db = require('../models/db');
+const db = require('../../models/db');
 
 const addDocumentType = async (req, res) => {
     const { doc_type_name, description, access_level = 1, max_days, doc_type_id } = req.body;

@@ -1,5 +1,5 @@
 const express = require('express');
-const { addEmployee, updateEmployee, getAllEmployees, getEmployeeStatistics, deleteEmployee } = require('../controllers/employeeController'); // นำเข้าฟังก์ชัน
+const { addEmployee, updateEmployee, getAllEmployees, getEmployeeStatistics, deleteEmployee } = require('./employeeController'); // นำเข้าฟังก์ชัน
 
 const router = express.Router();
 

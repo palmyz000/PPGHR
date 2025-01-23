@@ -1,4 +1,4 @@
-const db = require('../models/db'); // เชื่อมต่อฐานข้อมูล
+const db = require('../../models/db'); // เชื่อมต่อฐานข้อมูล
 
 const getPayrollData = async (req, res) => {
   const { month } = req.query;
