@@ -6,23 +6,23 @@ const pool = mariadb.createPool({
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  connectionLimit: 5,
+  connectionLimit: 1,
   supportBigNumbers: true,
-  bigNumberStrings: true, // BigInt จะถูกแปลงเป็น String
+  bigNumberStrings: true,
 });
 
-// ฟังก์ชันทดสอบการเชื่อมต่อฐานข้อมูล
+
 const connectDB = async () => {
   try {
     const conn = await pool.getConnection();
     console.log("Database connected successfully!");
-    conn.release();  // ปล่อยการเชื่อมต่อหลังจากตรวจสอบ
+    conn.release();  
   } catch (error) {
     console.error("Error connecting to the database:", error);
   }
 };
 
-// เรียกใช้งานฟังก์ชัน
+
 connectDB();
 
 module.exports = pool;
