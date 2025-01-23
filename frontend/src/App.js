@@ -5,7 +5,7 @@ import Dashboard from './pages/Dashboard';
 import EmployeePage from './pages/employee/EmployeePage';
 import LeavePage from './pages/LeavePage';
 import PayrollPage from './pages/payroll/PayrollPage';
-import EvaluationPage from './pages/EvaluationPage';
+import EvaluationPage from './pages/Eva/EvaluationPage';
 import ReportsPage from './pages/ReportsPage';
 import PayrollHistory from './pages/payroll/PayrollHistory';
 import PayrollStructure from './pages/payroll/PayrollStructure';
@@ -18,7 +18,8 @@ import EmployeePayroll from './pages/employee/EmployeePayroll';
 import EmployeeTimesheet from './pages/employee/EmployeeTimesheet';
 import EmployeeLeave from './pages/employee/EmployeeLeave';
 import EmployeeLayout from './pages/employee/EmployeeLayout';
-
+import Login from './pages/login';  
+import Signup from './pages/Signup';
 const App = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
 
@@ -40,6 +41,8 @@ const App = () => {
         <Route path="/payroll/approval" element={<PayrollApproval />} />
         <Route path="/payroll/document" element={<PayrollDocument />} />
         <Route path="/payroll/settings" element={<PayrollSettings />} />
+       <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
 
         {/* Employee Routes */}
         <Route path="/employee-portal" element={<EmployeePortal />} />
