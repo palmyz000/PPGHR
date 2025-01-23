@@ -13,7 +13,6 @@ import { ChevronRight, History, FileText, CheckCircle, Settings } from 'lucide-r
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 
-
 const EmployeePage = () => {
   // States
   const [employees, setEmployees] = useState([]);
