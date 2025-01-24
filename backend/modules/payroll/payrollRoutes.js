@@ -1,8 +1,12 @@
-const express = require('express');
-const router = express.Router();
-const { getPayrollData } = require('./payrollController');
+const express = require("express");
+const authenticateJWT = require("../../middlewares/authenticateJWT"); // Import Middleware
+const { getPayrollData } = require("./payrollController");
 
-// Route สำหรับดึงข้อมูล Payroll
-router.get('/all-payroll', getPayrollData);
+const router = express.Router();
+
+// ใช้ Middleware authenticateJWT กับทุก Route ใน payrollRoutes.js
+router.use(authenticateJWT);
+
+router.get("/all-payroll", getPayrollData);
 
 module.exports = router;
