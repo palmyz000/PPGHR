@@ -18,44 +18,48 @@ import EmployeePayroll from './pages/employee/EmployeePayroll';
 import EmployeeTimesheet from './pages/employee/EmployeeTimesheet';
 import EmployeeLeave from './pages/employee/EmployeeLeave';
 import EmployeeLayout from './pages/employee/EmployeeLayout';
-import Login from './pages/login'; 
-import AdminDashboard from './pages/AdminDashboard';
+import Login from './pages/login';  
 import CreateAccount from './pages/createAccount';
+import AdminDashboard from './pages/AdminDashboard';
+
 const App = () => {
-  const [activeTab, setActiveTab] = useState('dashboard');
+ const [activeTab, setActiveTab] = useState('dashboard');
 
-  return (
-    <Router>
-      {/* Navbar */}
-      <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
-      
-      <Routes>
-        {/* Admin Routes */}
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/employees" element={<EmployeePage />} />
-        <Route path="/leave" element={<LeavePage />} />
-        <Route path="/payroll" element={<PayrollPage />} />
-        <Route path="/evaluation" element={<EvaluationPage />} />
-        <Route path="/reports" element={<ReportsPage />} />
-        <Route path="/payroll/history" element={<PayrollHistory />} />
-        <Route path="/payroll/structure" element={<PayrollStructure />} />
-        <Route path="/payroll/approval" element={<PayrollApproval />} />
-        <Route path="/payroll/document" element={<PayrollDocument />} />
-        <Route path="/payroll/settings" element={<PayrollSettings />} />
+ React.useEffect(() => {
+   if (window.location.pathname === '/') {
+     window.location.replace('/login');
+   }
+ }, []);
+
+ return (
+   <Router>
+     <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
+     <Routes>
+       <Route path="/dashboard" element={<Dashboard />} />
+       <Route path="/employees" element={<EmployeePage />} />
+       <Route path="/leave" element={<LeavePage />} />
+       <Route path="/payroll" element={<PayrollPage />} />
+       <Route path="/evaluation" element={<EvaluationPage />} />
+       <Route path="/reports" element={<ReportsPage />} />
+       <Route path="/payroll/history" element={<PayrollHistory />} />
+       <Route path="/payroll/structure" element={<PayrollStructure />} />
+       <Route path="/payroll/approval" element={<PayrollApproval />} />
+       <Route path="/payroll/document" element={<PayrollDocument />} />
+       <Route path="/payroll/settings" element={<PayrollSettings />} />
        <Route path="/login" element={<Login />} />
-        <Route path="/admin-dashboard" element={<AdminDashboard />} />
-        <Route path="/createaccount" element={<CreateAccount />} />
-
-        {/* Employee Routes */}
-        <Route path="/employee-portal" element={<EmployeePortal />} />
-        <Route path="/employee/documents" element={<EmployeeDocuments />} />
-        <Route path="/employee/payroll" element={<EmployeePayroll />} />
-        <Route path="/employee/timesheet" element={<EmployeeTimesheet />} />
-        <Route path="/employee/leave" element={<EmployeeLeave />} />
-        <Route path="/employee/layout" element={<EmployeeLayout />} />
-      </Routes>
-    </Router>
-  );
+       <Route path="/createaccount" element={<CreateAccount />} />
+       <Route path="/admin-dashboard" element={<AdminDashboard />} />
+       
+       {/* Employee Routes */}
+       <Route path="/employee-portal" element={<EmployeePortal />} />
+       <Route path="/employee/documents" element={<EmployeeDocuments />} />
+       <Route path="/employee/payroll" element={<EmployeePayroll />} />
+       <Route path="/employee/timesheet" element={<EmployeeTimesheet />} />
+       <Route path="/employee/leave" element={<EmployeeLeave />} />
+       <Route path="/employee/layout" element={<EmployeeLayout />} />
+     </Routes>
+   </Router>
+ );
 };
 
 export default App;

@@ -1,7 +1,7 @@
 require("dotenv").config(); // โหลดค่าใน .env
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const pool = require('../../models/db');
+const pool = require("../../models/db");
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -10,7 +10,7 @@ if (!JWT_SECRET) {
   process.exit(1);
 }
 
-
+// สร้างบัญชีผู้ใช้งานใหม่
 const createAccount = async (req, res) => {
   const { tenant_id, emp_code, email, password, role } = req.body;
 
@@ -28,21 +28,21 @@ const createAccount = async (req, res) => {
       return res.status(404).json({ message: "ไม่พบ Tenant ที่ระบุ" });
     }
 
-    // ตรวจสอบว่ามีพนักงานอยู่ใน tenant_id นั้นหรือไม่
-    const [employee] = await conn.query(
+    // ตรวจสอบว่ามีพนักงานใน tenant_id นั้นหรือไม่ (ถ้าใช้ emp_code เป็นการอ้างอิง)
+    const [existingEmployee] = await conn.query(
       "SELECT * FROM PPGHR_employee_data WHERE emp_code = ? AND tenant_id = ?",
       [emp_code, tenant_id]
     );
 
-    if (!employee || employee.length === 0) {
+    if (!existingEmployee || existingEmployee.length === 0) {
       conn.release();
       return res.status(404).json({ message: "ไม่พบพนักงานใน Tenant ที่ระบุ" });
     }
 
-    // ตรวจสอบว่ามีบัญชีผู้ใช้อยู่แล้วหรือไม่
+    // ตรวจสอบว่า email นี้มีบัญชีผู้ใช้อยู่แล้วหรือไม่
     const [existingAccount] = await conn.query(
-      "SELECT * FROM PPGHR_accounts WHERE email = ?",
-      [email]
+      "SELECT * FROM PPGHR_accounts WHERE email = ? AND tenant_id = ?",
+      [email, tenant_id]
     );
 
     if (existingAccount && existingAccount.length > 0) {
@@ -67,54 +67,49 @@ const createAccount = async (req, res) => {
   }
 };
 
-
-// Login Function
 const login = async (req, res) => {
-  const { tenant_id, email, password } = req.body;
-
-  if (!email || !password || !tenant_id) {
-    return res.status(400).json({ message: "กรุณากรอกข้อมูลให้ครบถ้วน" });
-  }
-
+  let conn;
   try {
-    const conn = await pool.getConnection();
-
-    // ค้นหาผู้ใช้งานจากฐานข้อมูล
+    const { email, password, tenant_id } = req.body;
+    
+    conn = await pool.getConnection();
+    
     const [user] = await conn.query(
-      "SELECT * FROM PPGHR_employee_data WHERE email = ? AND tenant_id = ?",
+      'SELECT * FROM PPGHR_accounts WHERE email = ? AND tenant_id = ?',
       [email, tenant_id]
     );
 
-    conn.release();
-
     if (!user || user.length === 0) {
-      return res.status(401).json({ message: "อีเมลหรือรหัสผ่านไม่ถูกต้อง" });
+      return res.status(401).json({ message: 'ไม่พบข้อมูลผู้ใช้' });
     }
 
-    const foundUser = user[0];
-
-    // ตรวจสอบรหัสผ่าน
-    const isPasswordValid = await bcrypt.compare(password, foundUser.password);
-    if (!isPasswordValid) {
-      return res.status(401).json({ message: "อีเมลหรือรหัสผ่านไม่ถูกต้อง" });
+    const validPassword = await bcrypt.compare(password, user.password);
+    if (!validPassword) {
+      return res.status(401).json({ message: 'รหัสผ่านไม่ถูกต้อง' });
     }
 
-    // สร้าง JWT Token
     const token = jwt.sign(
-      { tenant_id: foundUser.tenant_id, emp_code: foundUser.emp_code, role: foundUser.role },
+      { id: user.id, role: user.role, tenant_id },
       JWT_SECRET,
-      { expiresIn: "2h" }
+      { expiresIn: '1d' }
     );
 
-    res.status(200).json({
-      message: "เข้าสู่ระบบสำเร็จ",
+    res.json({
       token,
+      tenant_id,
+      role: user.role
     });
-  } catch (error) {
-    console.error("Error in login:", error);
-    res.status(500).json({ message: "เกิดข้อผิดพลาดในการเข้าสู่ระบบ", error: error.message });
+
+  } catch (err) {
+    console.error('Error in login:', err);
+    res.status(500).json({ message: 'เกิดข้อผิดพลาดที่เซิร์ฟเวอร์' });
+  } finally {
+    if (conn) conn.release();
   }
 };
+
+
+
 
 // Export Controller Functions
 module.exports = { createAccount, login };

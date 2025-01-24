@@ -69,7 +69,38 @@ const updateEmployee = async (req, res) => {
     }
 };
 
+const getCompanyByEmail = async (req, res) => {
+    const { email } = req.params;
+    let conn;
+    
+    try {
+        conn = await db.getConnection();
+        const query = `
+            SELECT e.tenant_id, t.tenant_name 
+            FROM PPGHR_employee_data e
+            JOIN PPGHR_tenants t ON e.tenant_id = t.tenant_id
+            WHERE e.email = ?
+        `;
+        
+        const [row] = await conn.query(query, [email]);
+        
+        if (!row) {
+            return res.status(404).json({
+                message: "ไม่พบข้อมูลพนักงาน"
+            });
+        }
 
+        res.status(200).json(row);
+        
+    } catch (error) {
+        res.status(500).json({
+            message: "เกิดข้อผิดพลาด",
+            error: error.message
+        });
+    } finally {
+        if (conn) conn.release();
+    }
+};
 
 const getAllEmployees = async (req, res) => {
     let conn;
@@ -201,5 +232,42 @@ const deleteEmployee = async (req, res) => {
     }
 };
 
-module.exports = { addEmployee, updateEmployee, getAllEmployees, getEmployeeStatistics, deleteEmployee };
+
+// Backend
+const TenantAllEmployees = async (req, res) => {
+    let conn;
+    try {
+        conn = await db.getConnection();
+        const tenant_id = req.headers['x-tenant-id']; // แก้ให้ตรงกับ middleware
+
+        const query = `
+            SELECT * FROM PPGHR_employee_data 
+            WHERE tenant_id = ?;
+        `;
+
+        const rows = await conn.query(query, [tenant_id]);
+        conn.release();
+
+        if (!rows || rows.length === 0) {
+            return res.status(404).json({
+                message: "ไม่พบข้อมูลพนักงาน",
+                data: [],
+            });
+        }
+
+        res.status(200).json({
+            message: "ดึงข้อมูลพนักงานสำเร็จ",
+            data: rows,
+        });
+    } catch (error) {
+        if (conn) conn.release();
+        console.error("Error:", error);
+        res.status(500).json({
+            message: "เกิดข้อผิดพลาดในการดึงข้อมูล",
+            error: error.message,
+        });
+    }
+};
+
+module.exports = { addEmployee, updateEmployee, getAllEmployees, getEmployeeStatistics, deleteEmployee,getCompanyByEmail,TenantAllEmployees };
 

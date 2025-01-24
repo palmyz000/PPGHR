@@ -1,12 +1,15 @@
-const express = require('express');
-const { addEmployee, updateEmployee, getAllEmployees, getEmployeeStatistics, deleteEmployee } = require('./employeeController'); // นำเข้าฟังก์ชัน
+const express = require("express");
+const authenticateJWT = require("../../middlewares/authenticateJWT"); // Import Middleware
+const { addEmployee, updateEmployee, getAllEmployees, getEmployeeStatistics, deleteEmployee,getCompanyByEmail,TenantAllEmployees } = require("./employeeController");
 
 const router = express.Router();
 
-router.post('/add', addEmployee); 
-router.get('/all', getAllEmployees); 
-router.put('/update', updateEmployee);
-router.get('/statistics', getEmployeeStatistics);
-router.post('/delete', deleteEmployee); 
+router.post("/add", authenticateJWT, addEmployee); // ป้องกัน API
+router.get("/all", getAllEmployees); // อาจไม่ต้องป้องกัน
+router.get("/tenant",authenticateJWT,TenantAllEmployees);
+router.put("/update", authenticateJWT, updateEmployee); // ป้องกัน API
+router.get("/statistics", getEmployeeStatistics); // อาจไม่ต้องป้องกัน
+router.post("/delete", authenticateJWT, deleteEmployee); // ป้องกัน API
+router.get("/ByEmail/:email", getCompanyByEmail);
 
-module.exports = router; 
+module.exports = router;
