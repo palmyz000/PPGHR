@@ -19,12 +19,8 @@ import EmployeeTimesheet from './pages/employee/EmployeeTimesheet';
 import EmployeeLeave from './pages/employee/EmployeeLeave';
 import EmployeeLayout from './pages/employee/EmployeeLayout';
 import Login from './pages/login';  
-<<<<<<< HEAD
-import Signup from './pages/Signup';
-import AdminDashboard from './pages/AdminDashboard';
-=======
 import CreateAccount from './pages/createAccount';
->>>>>>> 05e23c1cec1bbd4b744e72d99de87c419e6ec14f
+import AdminDashboard from './pages/AdminDashboard';
 const App = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
 
@@ -47,12 +43,8 @@ const App = () => {
         <Route path="/payroll/document" element={<PayrollDocument />} />
         <Route path="/payroll/settings" element={<PayrollSettings />} />
        <Route path="/login" element={<Login />} />
-<<<<<<< HEAD
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/admin-dashboard" element={<AdminDashboard />} />
-=======
         <Route path="/createaccount" element={<CreateAccount />} />
->>>>>>> 05e23c1cec1bbd4b744e72d99de87c419e6ec14f
+        <Route path="/admin-dashboard" element={<AdminDashboard />} />
 
         {/* Employee Routes */}
         <Route path="/employee-portal" element={<EmployeePortal />} />
