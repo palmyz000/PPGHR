@@ -40,17 +40,24 @@ const ReportsPage = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch('http://localhost:8000/api/documents/all');
-
+  
+      const token = localStorage.getItem("token"); // ดึง token
+      const response = await fetch('http://localhost:8000/api/documents/all', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`, // เพิ่ม Header Authorization
+        },
+      });
+  
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-
+  
       const data = await response.json();
       if (data.success === false) {
         throw new Error(data.message || 'Failed to fetch documents');
       }
-
+  
       setDocuments(Array.isArray(data) ? data : data.data || []);
     } catch (error) {
       console.error('Error fetching documents:', error);
@@ -59,17 +66,20 @@ const ReportsPage = () => {
       setLoading(false);
     }
   };
+  
 
   const handleCreateDocument = async (e) => {
     e.preventDefault();
     try {
       setLoading(true);
       setError(null);
-
+  
+      const token = localStorage.getItem("token"); // ดึง token
       const response = await fetch('http://localhost:8000/api/documents/add', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`, // เพิ่ม Header Authorization
         },
         body: JSON.stringify({
           doc_type_name: newDocument.doc_type_name,
@@ -79,16 +89,16 @@ const ReportsPage = () => {
           doc_type_id: newDocument.doc_type_id,
         }),
       });
-
+  
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-
+  
       const result = await response.json();
       if (result.success === false) {
         throw new Error(result.message || 'Failed to create document');
       }
-
+  
       setSuccessMessage('เพิ่มประเภทเอกสารสำเร็จ');
       setShowModal(false);
       setNewDocument({
@@ -106,32 +116,35 @@ const ReportsPage = () => {
       setLoading(false);
     }
   };
+  
 
   const handleUpdateDocument = async (doc_type_id, newAccessLevel) => {
     try {
       setLoading(true);
       setError(null);
-
+  
+      const token = localStorage.getItem("token"); // ดึง token
       const response = await fetch('http://localhost:8000/api/documents/update', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`, // เพิ่ม Header Authorization
         },
         body: JSON.stringify({
           doc_type_id,
           access_level: newAccessLevel
         }),
       });
-
+  
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-
+  
       const result = await response.json();
       if (result.success === false) {
         throw new Error(result.message || 'Failed to update access_level');
       }
-
+  
       setSuccessMessage('อัปเดตระดับการเข้าถึงสำเร็จ');
       await fetchDocuments();
     } catch (error) {
@@ -141,6 +154,7 @@ const ReportsPage = () => {
       setLoading(false);
     }
   };
+  
 
 
 
@@ -148,28 +162,30 @@ const ReportsPage = () => {
     if (!window.confirm("คุณแน่ใจหรือไม่ว่าต้องการลบประเภทเอกสารนี้?")) {
       return;
     }
-
+  
     try {
       setLoading(true);
       setError(null);
-
+  
+      const token = localStorage.getItem("token"); // ดึง token
       const response = await fetch(`http://localhost:8000/api/documents/delete`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`, // เพิ่ม Header Authorization
         },
         body: JSON.stringify({ id }),
       });
-
+  
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-
+  
       const result = await response.json();
       if (result.success === false) {
         throw new Error(result.message || "Failed to delete document");
       }
-
+  
       setSuccessMessage("ลบประเภทเอกสารสำเร็จ");
       await fetchDocuments(); // Refresh the list
     } catch (error) {
@@ -179,6 +195,7 @@ const ReportsPage = () => {
       setLoading(false);
     }
   };
+  
 
 
   const filteredDocuments = documents.filter((doc) => {
