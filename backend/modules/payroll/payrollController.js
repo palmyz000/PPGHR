@@ -22,15 +22,16 @@ const getPayrollData = async (req, res) => {
     emp.department, 
     COALESCE(sb.base_salary, 0) AS salary, 
     COALESCE(SUM(ot.total_ot), 0) AS ot, 
-    COALESCE((sb.base_salary * sb.tax_rate) / 100, 0) AS tax, -- คำนวณ tax จาก tax_rate
-    COALESCE(sb.insurance, 0) AS insurance, 
-    (COALESCE(sb.base_salary, 0) + COALESCE(SUM(ot.total_ot), 0) - COALESCE((sb.base_salary * sb.tax_rate) / 100, 0) - COALESCE(sb.insurance, 0)) AS net_salary
+    COALESCE(sp.tax, 0) AS tax, 
+    COALESCE(sp.social_security, 0) AS insurance, 
+    COALESCE(sp.total_salary - sp.net_salary, 0) AS deductions,
+    (COALESCE(sb.base_salary, 0) + COALESCE(SUM(ot.total_ot), 0) - COALESCE(sp.tax, 0) - COALESCE(sp.social_security, 0)) AS net_salary
 FROM PPGHR_employee_data emp
 LEFT JOIN PPGHR_salary_base sb ON emp.emp_code = sb.emp_code
 LEFT JOIN PPGHR_ot ot ON emp.emp_code = ot.emp_code
-GROUP BY emp.emp_code, emp.name, emp.position, emp.department, sb.base_salary, sb.tax_rate, sb.insurance
+LEFT JOIN PPGHR_salary_payments sp ON emp.emp_code = sp.emp_code
+GROUP BY emp.emp_code, emp.name, emp.position, emp.department, sb.base_salary, sp.tax, sp.social_security, sp.total_salary, sp.net_salary
 ORDER BY emp.emp_code;
-
 
     `;
 

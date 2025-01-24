@@ -33,24 +33,35 @@ const PayrollPage = () => {
   const fetchPayrollData = async () => {
     setLoading(true);
     setError(null);
+  
     try {
-      const response = await fetch(`http://localhost:8000/api/payroll/all-payroll?month=${selectedMonth}`);
+      const token = localStorage.getItem("token"); // ดึง token จาก localStorage
+  
+      const response = await fetch(`http://localhost:8000/api/payroll/all-payroll?month=${selectedMonth}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`, // ส่ง token ใน Authorization header
+        },
+      });
+  
       const data = await response.json();
-
+  
       if (response.ok && data.data) {
         setPayrollData(data.data);
       } else {
         setPayrollData([]);
-        setError(data.message || 'เกิดข้อผิดพลาดในการดึงข้อมูล');
+        setError(data.message || "เกิดข้อผิดพลาดในการดึงข้อมูล");
       }
     } catch (error) {
-      console.error('Error fetching payroll data:', error);
-      setError('ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้');
+      console.error("Error fetching payroll data:", error);
+      setError("ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้");
       setPayrollData([]);
     } finally {
       setLoading(false);
     }
   };
+  
 
   const filteredData = payrollData.filter((employee) => {
     const matchesSearch =
