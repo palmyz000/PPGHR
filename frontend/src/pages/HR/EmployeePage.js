@@ -66,7 +66,16 @@ const EmployeePage = () => {
       setLoading(false);
     }
   };
-
+  const [newEmployee, setNewEmployee] = useState({
+    emp_code: '',
+    name: '',
+    department: '',
+    position: '',
+    email: '',
+    phone: '',
+    hire_date: '',
+    is_active: 1
+  });
   const handleAddEmployee = async (newEmployeeData) => {
     try {
       const tenant_id = localStorage.getItem('tenant_id');
@@ -477,7 +486,105 @@ const EmployeePage = () => {
                 x
               </button>
             </div>
-            {/* Form content */}
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              handleAddEmployee(newEmployee);
+            }}>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">รหัสพนักงาน</label>
+                  <input
+                    type="text"
+                    name="emp_code"
+                    onChange={(e) => setNewEmployee({ ...newEmployee, emp_code: e.target.value })}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">ชื่อ-นามสกุล</label>
+                  <input
+                    type="text"
+                    name="name"
+                    onChange={(e) => setNewEmployee({ ...newEmployee, name: e.target.value })}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">แผนก</label>
+                  <select
+                    name="department"
+                    onChange={(e) => setNewEmployee({ ...newEmployee, department: e.target.value })}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                    required
+                  >
+                    <option value="">เลือกแผนก</option>
+                    {departments.map(dept => (
+                      <option key={dept} value={dept}>{dept}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">ตำแหน่ง</label>
+                  <input
+                    type="text"
+                    name="position"
+                    onChange={(e) => setNewEmployee({ ...newEmployee, position: e.target.value })}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">อีเมล</label>
+                  <input
+                    type="email"
+                    name="email"
+                    onChange={(e) => setNewEmployee({ ...newEmployee, email: e.target.value })}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">เบอร์โทรศัพท์</label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    onChange={(e) => setNewEmployee({ ...newEmployee, phone: e.target.value })}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">วันที่เริ่มงาน</label>
+                  <input
+                    type="date"
+                    name="hire_date"
+                    onChange={(e) => setNewEmployee({ ...newEmployee, hire_date: e.target.value })}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-6 flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                >
+                  บันทึก
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
