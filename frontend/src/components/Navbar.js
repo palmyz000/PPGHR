@@ -74,15 +74,6 @@ const Navbar = ({ activeTab, setActiveTab }) => {
               >
                 รายงาน
               </Link>
-              <Link
-                to="/admin-dashboard"
-                className={`px-4 py-2 rounded-lg transition-colors ${
-                  activeTab === 'admin-dashboard' ? 'bg-blue-100 text-blue-800' : 'text-gray-600 hover:bg-blue-50'
-                }`}
-                onClick={() => setActiveTab('admin-dashboard')}
-              >
-                admin-dashboard
-              </Link>
             </nav>
           </div>
           <div className="flex items-center space-x-4">

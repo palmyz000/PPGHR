@@ -6,7 +6,7 @@ const pool = mariadb.createPool({
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  connectionLimit: 5, // เพิ่ม Connection Limit เพื่อรองรับ Multiple Requests
+  connectionLimit: 1, // เพิ่ม Connection Limit เพื่อรองรับ Multiple Requests
   supportBigNumbers: true,
   bigNumberStrings: true,
 });
