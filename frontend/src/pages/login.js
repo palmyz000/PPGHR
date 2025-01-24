@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 
 const Login = () => {
   const [formData, setFormData] = useState({
-    tenant_id: "", // เพิ่ม tenant_id
     email: "",
     password: "",
   });
@@ -50,22 +49,7 @@ const Login = () => {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <form className="space-y-6" onSubmit={handleSubmit}>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Tenant ID
-              </label>
-              <div className="mt-1">
-                <input
-                  type="number"
-                  required
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  value={formData.tenant_id}
-                  onChange={(e) =>
-                    setFormData({ ...formData, tenant_id: e.target.value })
-                  }
-                />
-              </div>
-            </div>
+            
 
             <div>
               <label className="block text-sm font-medium text-gray-700">
