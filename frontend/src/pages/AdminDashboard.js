@@ -1,10 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '../components/Card';
 import { Users, Building2, Settings, PieChart, Bell, Search, Eye, Edit, Trash, Plus, Power } from 'lucide-react';
 
 const AdminDashboard = () => {
-  // เพิ่ม state สำหรับจัดการ active menu
   const [activeMenu, setActiveMenu] = useState('dashboard');
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        console.log('Fetching profile with token:', token);
+const response = await fetch('http://localhost:8000/api/user/profile', {
+  headers: {
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  }
+});
+        if (!response.ok) {
+          throw new Error('ไม่สามารถดึงข้อมูลโปรไฟล์ได้');
+        }
+        const data = await response.json();
+        console.log('Profile data:', data);
+        setProfile(data);
+      } catch (error) {
+        console.error('เกิดข้อผิดพลาดในการดึงข้อมูลโปรไฟล์:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, []);
 
   const renderContent = () => {
     switch(activeMenu) {
@@ -26,7 +54,7 @@ const AdminDashboard = () => {
       {/* Sidebar */}
       <div className="w-64 bg-white shadow-lg">
         <div className="p-4">
-          <h1 className="text-xl font-bold text-gray-800">HR Admin Portal</h1>
+          <h1 className="text-xl font-bold text-gray-800">ระบบจัดการ HR</h1>
         </div>
         
         <nav className="mt-4">
@@ -96,7 +124,15 @@ const AdminDashboard = () => {
             </button>
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-blue-500 rounded-full"></div>
-              <span className="text-gray-700">Admin</span>
+              <span className="text-gray-700">
+              {loading ? (
+  <span className="text-gray-500">กำลังโหลด...</span>
+) : profile ? (
+  <span className="text-gray-700">{profile.name}</span>
+) : (
+  <span className="text-gray-500">ผู้ใช้</span>
+)}
+              </span>
             </div>
           </div>
         </div>
