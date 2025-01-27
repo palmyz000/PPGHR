@@ -31,28 +31,40 @@ const Login = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     if (!companyInfo) return;
-
+  
     setError("");
     setIsLoading(true);
-
+  
     try {
       const response = await axios.post("http://localhost:8000/api/auth/login", {
         ...formData,
         tenant_id: companyInfo.tenant_id
       });
-      
+  
       const { token, tenant_id, role } = response.data;
+  
+      // เก็บข้อมูลใน localStorage
       localStorage.setItem("token", token);
       localStorage.setItem("tenant_id", tenant_id);
       localStorage.setItem("role", role);
-
-      window.location.href = "/dashboard";
+  
+      // แยกการนำทางตาม role
+      if (role === "admin") {
+        window.location.href = "/admin-dashboard"; // เปลี่ยนเป็น URL สำหรับ admin
+      } else if (role === "employee") {
+        window.location.href = "/dashboard"; // เปลี่ยนเป็น URL สำหรับ employee
+      } else if (role === "hr") {
+        window.location.href = "/hr-dashboard"; // เปลี่ยนเป็น URL สำหรับ HR
+      } else {
+        setError("Role ไม่ถูกต้อง กรุณาติดต่อผู้ดูแลระบบ");
+      }
     } catch (err) {
       setError(err.response?.data?.message || "เกิดข้อผิดพลาด กรุณาลองใหม่");
     } finally {
       setIsLoading(false);
     }
   };
+  
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
