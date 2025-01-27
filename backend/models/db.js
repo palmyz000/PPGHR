@@ -9,8 +9,8 @@ const pool = mariadb.createPool({
   connectionLimit: 1,
   supportBigNumbers: true,
   bigNumberStrings: true,
-  idleTimeout: 30000, // ปิด Connection ที่ไม่ได้ใช้งานภายใน 30 วินาที
-  acquireTimeout: 30000, // Timeout สำหรับการร้องขอ Connection
+  idleTimeout: 30000, 
+  acquireTimeout: 30000, 
 });
 
 

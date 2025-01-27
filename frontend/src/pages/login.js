@@ -50,11 +50,11 @@ const Login = () => {
   
       // แยกการนำทางตาม role
       if (role === "admin") {
-        window.location.href = "/admin-dashboard"; // เปลี่ยนเป็น URL สำหรับ admin
+        window.location.href = "/admindashboard"; // เปลี่ยนเป็น URL สำหรับ admin
       } else if (role === "employee") {
-        window.location.href = "/dashboard"; // เปลี่ยนเป็น URL สำหรับ employee
+        window.location.href = "/employee/layout"; // เปลี่ยนเป็น URL สำหรับ employee
       } else if (role === "hr") {
-        window.location.href = "/hr-dashboard"; // เปลี่ยนเป็น URL สำหรับ HR
+        window.location.href = "/dashboard"; // เปลี่ยนเป็น URL สำหรับ HR
       } else {
         setError("Role ไม่ถูกต้อง กรุณาติดต่อผู้ดูแลระบบ");
       }

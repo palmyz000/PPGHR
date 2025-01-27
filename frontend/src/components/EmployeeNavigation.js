@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ChevronRight, History, FileText, CheckCircle, Settings } from 'lucide-react';
+import logo from "../assets/images/logo-peerapat-og.png";
 
 const EmployeeNavigation = () => {
   const location = useLocation();
@@ -14,9 +15,16 @@ const EmployeeNavigation = () => {
   ];
 
   return (
-    <div className="bg-white shadow mb-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex space-x-8">
+    <div className="bg-white shadow-md">
+      <div className="max-w-screen-2xl mx-auto">
+        <div className="flex justify-between items-center px-6 py-3">
+          <div className="flex items-center space-x-8">
+            <img src={logo} alt="PPGHR Logo" className="navbar-logo w-17 h-16 object-contain" />
+            <h1 className="text-xl font-bold text-blue-900">PPGHR Software and Systems</h1>
+          </div>
+        </div>
+
+        <div className="flex space-x-8 px-6 py-4">
           {navItems.map((item) => {
             const IconComponent = item.icon;
             const isActive = location.pathname.startsWith(item.path);
