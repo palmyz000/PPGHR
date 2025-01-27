@@ -1,30 +1,49 @@
 import React, { useState, useEffect } from 'react';
 import EmployeeNavigation from '../../components/EmployeeNavigation';
-import { Search, Filter, Plus, Download, FileText, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { Search, Plus, Download, FileText, Clock, CheckCircle, XCircle } from 'lucide-react';
 import axios from 'axios';
 
 const EmployeeDocuments = () => {
   // State declarations
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('all');
-  const [selectedType, setSelectedType] = useState('all');
   const [showPopup, setShowPopup] = useState(false);
   const [docTypes, setDocTypes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [formData, setFormData] = useState({
-    document_name: '',
-    description: '',
-    doc_type_name: '', // Use doc_type_name to match API
-    status: 'pending'
-  });
-
   const [documents, setDocuments] = useState([]);
 
-  // Fetch document types
-  const fetchDocTypes = async () => {
+  // Fetch documents from API
+  const fetchDocuments = async () => {
     setIsLoading(true);
     setError(null);
+
+    try {
+        const token = localStorage.getItem('token'); // JWT เก็บใน LocalStorage
+
+        const response = await axios.get('http://localhost:8000/api/documents/my-doc', {
+            headers: {
+                Authorization: `Bearer ${token}`, // ส่ง JWT ไปกับ Header
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (response.data && Array.isArray(response.data.data)) {
+            setDocuments(response.data.data); // เซต Documents ที่ได้รับจาก API
+        } else {
+            throw new Error('รูปแบบข้อมูลไม่ถูกต้อง');
+        }
+    } catch (error) {
+        console.error('Error fetching documents:', error);
+        setError('ไม่สามารถโหลดข้อมูลเอกสารได้');
+    } finally {
+        setIsLoading(false);
+    }
+};
+
+
+  // Fetch document types from API
+  const fetchDocTypes = async () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get('http://localhost:8000/api/documents/all-doctype', {
@@ -33,9 +52,7 @@ const EmployeeDocuments = () => {
           'Content-Type': 'application/json',
         },
       });
-  
-      console.log('API Response:', response.data);
-  
+
       if (response.data && Array.isArray(response.data.data)) {
         setDocTypes(response.data.data);
       } else {
@@ -43,86 +60,20 @@ const EmployeeDocuments = () => {
       }
     } catch (error) {
       console.error('Error fetching document types:', error);
-      setError('ไม่สามารถโหลดประเภทเอกสารได้');
-    } finally {
-      setIsLoading(false);
     }
   };
-  
 
   useEffect(() => {
+    fetchDocuments();
     fetchDocTypes();
   }, []);
 
-  // Handle adding new document
-  const handleAddDocument = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      if (!formData.doc_type_name) {
-        throw new Error('กรุณาเลือกประเภทเอกสาร');
-      }
-
-      const documentData = {
-        document_name: formData.document_name,
-        description: formData.description,
-        doc_type_name: formData.doc_type_name,
-        file_path: null
-      };
-
-      const response = await axios.post(
-        'http://localhost:8000/api/documents/add-doc',
-        documentData,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-            'Content-Type': 'application/json'
-          },
-        }
-      );
-
-      if (response.data) {
-        const newDoc = {
-          id: response.data.document_id,
-          type: formData.doc_type_name,
-          requestDate: new Date().toISOString().split('T')[0],
-          status: 'pending',
-          description: formData.description,
-          approver: '-',
-          comment: 'รอการตรวจสอบ'
-        };
-
-        setDocuments(prevDocs => [newDoc, ...prevDocs]);
-        setShowPopup(false);
-        setFormData({
-          document_name: '',
-          description: '',
-          doc_type_name: '',
-          status: 'pending'
-        });
-      }
-    } catch (error) {
-      setError(error.response?.data?.message || 'ไม่สามารถเพิ่มเอกสารได้');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prevState => ({
-      ...prevState,
-      [name]: value
-    }));
-  };
-
   const filteredDocuments = documents.filter(doc => {
-    const matchSearch = doc.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                       doc.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchSearch =
+      doc.document_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      doc.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchStatus = selectedStatus === 'all' || doc.status === selectedStatus;
-    const matchType = selectedType === 'all' || doc.type === selectedType;
-    return matchSearch && matchStatus && matchType;
+    return matchSearch && matchStatus;
   });
 
   const getStatusBadgeClass = (status) => {
@@ -151,97 +102,6 @@ const EmployeeDocuments = () => {
     }
   };
 
-  const AddDocumentForm = () => (
-    <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-bold text-gray-900">ยื่นเอกสารใหม่</h2>
-        <button onClick={() => setShowPopup(false)} className="text-gray-500 hover:text-gray-700">
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
-
-      {error && (
-        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">
-          {error}
-        </div>
-      )}
-
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            ชื่อเอกสาร
-          </label>
-          <input
-            type="text"
-            name="document_name"
-            value={formData.document_name}
-            onChange={handleChange}
-            className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="กรอกชื่อเอกสาร"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            คำอธิบาย
-          </label>
-          <textarea
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
-            rows="4"
-            className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="กรอกรายละเอียดเอกสาร"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            ประเภทเอกสาร
-          </label>
-          {isLoading ? (
-            <div className="w-full p-2 border rounded-lg bg-gray-50">
-              กำลังโหลดข้อมูล...
-            </div>
-          ) : (
-            <select
-              name="doc_type_name"
-              value={formData.doc_type_name}
-              onChange={handleChange}
-              className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              disabled={isLoading}
-            >
-              <option value="">เลือกประเภทเอกสาร</option>
-              {docTypes.map((type) => (
-                <option key={type.doc_type_id} value={type.doc_type_name}>
-                  {type.doc_type_name}
-                </option>
-              ))}
-            </select>
-          )}
-        </div>
-      </div>
-
-      <div className="mt-6 flex justify-end space-x-3">
-        <button
-          onClick={() => setShowPopup(false)}
-          className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-400"
-        >
-          ยกเลิก
-        </button>
-        <button
-          onClick={handleAddDocument}
-          disabled={!formData.document_name || !formData.description || !formData.doc_type_name || isLoading}
-          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isLoading ? 'กำลังโหลด...' : 'บันทึก'}
-        </button>
-      </div>
-    </div>
-  );
-
   return (
     <div>
       <EmployeeNavigation />
@@ -252,7 +112,10 @@ const EmployeeDocuments = () => {
             <h1 className="text-2xl font-semibold text-gray-900">เอกสารของพนักงาน</h1>
             <p className="text-gray-600 mt-1">จัดการเอกสารและติดตามสถานะการดำเนินการ</p>
           </div>
-          <button onClick={() => setShowPopup(true)} className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <button
+            onClick={() => setShowPopup(true)}
+            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
             <Plus className="w-4 h-4 mr-2" />
             ยื่นเอกสารใหม่
           </button>
@@ -300,28 +163,28 @@ const EmployeeDocuments = () => {
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <div className="divide-y divide-gray-200">
             {filteredDocuments.map((doc) => (
-              <div key={doc.id} className="p-4 hover:bg-gray-50">
+              <div key={doc.document_id} className="p-4 hover:bg-gray-50">
                 <div className="flex justify-between items-start">
                   <div className="flex items-start space-x-4">
                     <div className="p-2 bg-blue-100 rounded-lg">
                       <FileText className="w-6 h-6 text-blue-600" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-medium text-gray-900">{doc.type}</h3>
+                      <h3 className="text-lg font-medium text-gray-900">{doc.document_name}</h3>
                       <p className="text-sm text-gray-600 mt-1">{doc.description}</p>
                       <div className="flex items-center space-x-4 mt-2">
                         <div className="flex items-center text-sm text-gray-500">
                           <Clock className="w-4 h-4 mr-1" />
-                          วันที่ยื่น: {new Date(doc.requestDate).toLocaleDateString('th-TH')}
+                          วันที่ยื่น: {new Date(doc.upload_date).toLocaleDateString('th-TH')}
                         </div>
                         <div className="flex items-center text-sm text-gray-500">
                           <Clock className="w-4 h-4 mr-1" />
-                          กำหนดเสร็จ: {new Date(doc.deadline).toLocaleDateString('th-TH')}
+                          กำหนดเสร็จ: {doc.end_time ? new Date(doc.end_time).toLocaleDateString('th-TH') : 'N/A'}
                         </div>
                       </div>
                       <div className="mt-2 text-sm text-gray-500">
-                        <p>ผู้อนุมัติ: {doc.approver}</p>
-                        <p>หมายเหตุ: {doc.comment}</p>
+                        <p>ผู้อนุมัติ: {doc.approver || '-'}</p>
+                        <p>หมายเหตุ: {doc.comment || 'รอการตรวจสอบ'}</p>
                       </div>
                     </div>
                   </div>
@@ -363,13 +226,6 @@ const EmployeeDocuments = () => {
             </p>
           </div>
         </div>
-
-        {/* Add Document Modal */}
-        {showPopup && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <AddDocumentForm />
-          </div>
-        )}
       </div>
     </div>
   );

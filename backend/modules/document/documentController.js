@@ -152,7 +152,7 @@ const deleteDocumentType = async (req, res) => {
 
 
 const addDocument = async (req, res) => {
-    const { document_name, description, doc_type_name, file_path = null } = req.body;
+    const { document_name, description, doc_type_name, file_path = null , start_time, end_time} = req.body;
     const { emp_code, tenant_id } = req.user;
 
     try {
@@ -186,8 +186,10 @@ const addDocument = async (req, res) => {
                 upload_date, 
                 last_updated, 
                 file_path, 
-                status
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                status,
+                start_time,
+                end_time
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 document_name,
                 description,
@@ -197,7 +199,9 @@ const addDocument = async (req, res) => {
                 currentDate,
                 currentDate,
                 file_path,
-                'pending'
+                'pending',
+                start_time,
+                end_time
             ]
         );
 
@@ -220,34 +224,51 @@ const addDocument = async (req, res) => {
 
 
 
-const getUserDocuments = async (req, res) => {
-    const { emp_code, tenant_id } = req.user; // Assuming token data is decoded and available in req.user
 
+
+const getUserDocuments = async (req, res) => { ///// ยังมีปัญหา
+
+
+    let conn;
     try {
-        const conn = await db.getConnection();
+        conn = await db.getConnection();
 
-        const [documents] = await conn.query(
-            `SELECT d.document_id, d.document_name, d.description, d.status, d.upload_date, d.last_updated, 
-                    t.doc_type_name 
-             FROM PPGHR_documents d
-             JOIN PPGHR_document_types t ON d.doc_type_id = t.doc_type_id
-             WHERE d.uploaded_by = ? AND d.tenant_id = ?`,
-            [emp_code, tenant_id]
-        );
+        const query = `
+            SELECT * 
+            FROM PPGHR_documents 
+            
+        `;
 
-        conn.release();
+        const rows = await conn.query(query);
+
+        if (!rows || rows.length === 0) {
+            return res.status(404).json({
+                message: "ไม่พบข้อมูลเอกสาร",
+                data: [],
+            });
+        }
+
         res.status(200).json({
-            documents,
-            message: "Documents retrieved successfully!",
+            message: "ดึงข้อมูลเอกสารสำเร็จ",
+            data: rows,
         });
     } catch (error) {
-        console.error("Error retrieving documents:", error);
+        console.error("Error fetching documents:", error);
         res.status(500).json({
-            message: "Error retrieving documents.",
+            message: "เกิดข้อผิดพลาดในการดึงข้อมูล",
             error: error.message,
         });
+    } finally {
+        if (conn) conn.release();
     }
 };
+
+
+
+
+  
+
+  
 
 
 
