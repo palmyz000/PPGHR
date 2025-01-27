@@ -89,7 +89,7 @@ const login = async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: user.id, role: user.role, tenant_id },
+      { id: user.id, role: user.role, emp_code :user.emp_code , tenant_id },
       JWT_SECRET,
       { expiresIn: '1d' }
     );
@@ -97,7 +97,8 @@ const login = async (req, res) => {
     res.json({
       token,
       tenant_id,
-      role: user.role
+      role: user.role,
+      emp_code :user.emp_code
     });
 
   } catch (err) {

@@ -1,7 +1,7 @@
 const db = require('../../models/db');
 
 const userProfile = async (req, res) => {
-    const { id, tenant_id } = req.user; // ดึงข้อมูล user จาก JWT payload
+    const { emp_code, tenant_id } = req.user; // ดึงข้อมูล emp_code และ tenant_id จาก JWT payload
   
     let conn;
     try {
@@ -9,8 +9,8 @@ const userProfile = async (req, res) => {
   
         // Query ดึงข้อมูลโปรไฟล์ผู้ใช้จาก PPGHR_accounts
         const [userAccount] = await conn.query(
-            "SELECT emp_code, email, role, tenant_id, created_at FROM PPGHR_accounts WHERE account_id = ? AND tenant_id = ?",
-            [id, tenant_id]
+            "SELECT emp_code, email, role, tenant_id, created_at FROM PPGHR_accounts WHERE emp_code = ? AND tenant_id = ?",
+            [emp_code, tenant_id]
         );
 
         // ตรวจสอบว่าพบข้อมูลผู้ใช้หรือไม่
@@ -18,8 +18,6 @@ const userProfile = async (req, res) => {
             conn.release();
             return res.status(404).json({ message: "ไม่พบข้อมูลผู้ใช้งานใน PPGHR_accounts" });
         }
-
-        const { emp_code } = userAccount;
 
         // Query ดึงข้อมูล name จาก PPGHR_employee_data โดยใช้ emp_code
         const [employeeData] = await conn.query(

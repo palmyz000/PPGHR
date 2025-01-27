@@ -11,21 +11,25 @@ const AdminDashboard = () => {
     const fetchProfile = async () => {
       try {
         const token = localStorage.getItem('token');
-        console.log('Fetching profile with token:', token);
-const response = await fetch('http://localhost:8000/api/user/profile', {
-  headers: {
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json'
-  }
-});
+        if (!token) throw new Error('Token ไม่ถูกต้อง');
+        
+        const response = await fetch('http://localhost:8000/api/user/profile', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
         if (!response.ok) {
           throw new Error('ไม่สามารถดึงข้อมูลโปรไฟล์ได้');
         }
+
         const data = await response.json();
-        console.log('Profile data:', data);
-        setProfile(data);
-      } catch (error) {
-        console.error('เกิดข้อผิดพลาดในการดึงข้อมูลโปรไฟล์:', error);
+        setProfile(data.data);
+        
+      } catch (err) {
+        
+        setProfile(null);
       } finally {
         setLoading(false);
       }
@@ -125,13 +129,13 @@ const response = await fetch('http://localhost:8000/api/user/profile', {
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-blue-500 rounded-full"></div>
               <span className="text-gray-700">
-              {loading ? (
-  <span className="text-gray-500">กำลังโหลด...</span>
-) : profile ? (
-  <span className="text-gray-700">{profile.name}</span>
-) : (
-  <span className="text-gray-500">ผู้ใช้</span>
-)}
+                {loading
+
+
+                  ? 'ไม่สามารถโหลดข้อมูลได้'
+                  : profile
+                  ? profile.name
+                  : 'ผู้ใช้'}
               </span>
             </div>
           </div>
