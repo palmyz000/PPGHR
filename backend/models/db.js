@@ -6,10 +6,13 @@ const pool = mariadb.createPool({
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  connectionLimit: 1, // เพิ่ม Connection Limit เพื่อรองรับ Multiple Requests
+  connectionLimit: 1,
   supportBigNumbers: true,
   bigNumberStrings: true,
+  idleTimeout: 30000, // ปิด Connection ที่ไม่ได้ใช้งานภายใน 30 วินาที
+  acquireTimeout: 30000, // Timeout สำหรับการร้องขอ Connection
 });
+
 
 const connectDB = async () => {
   try {
