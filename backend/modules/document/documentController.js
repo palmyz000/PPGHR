@@ -150,10 +150,69 @@ const deleteDocumentType = async (req, res) => {
     }
 };
 
-module.exports = {
-    deleteDocumentType,
-};
 
+const addDocument = async (req, res) => {
+    const { document_name, description, doc_type_id, file_path = null } = req.body;
+    const { emp_code, tenant_id } = req.user; // Assuming token data is decoded and available in req.user
+
+    try {
+        const conn = await db.getConnection();
+        
+        // Check if doc_type_id exists in PPGHR_document_types
+        const [docType] = await conn.query(
+            "SELECT * FROM PPGHR_document_types WHERE doc_type_id = ?",
+            [doc_type_id]
+        );
+
+        if (!docType || docType.length === 0) {
+            conn.release();
+            return res.status(400).json({
+                message: "Invalid document type ID.",
+            });
+        }
+
+        const currentDate = new Date().toISOString().slice(0, 19).replace('T', ' ');
+
+        const result = await conn.query(
+            `INSERT INTO PPGHR_documents (
+                document_name, 
+                description, 
+                doc_type_id, 
+                uploaded_by, 
+                tenant_id, 
+                upload_date, 
+                last_updated, 
+                file_path, 
+                status
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+                document_name,
+                description,
+                doc_type_id,
+                emp_code,
+                tenant_id,
+                currentDate,
+                currentDate,
+                file_path,
+                'pending'
+            ]
+        );
+
+        console.log("Insert result:", result);
+
+        conn.release();
+        res.status(201).json({
+            message: "Document added successfully!",
+            document_id: result[0].insertId
+        });
+    } catch (error) {
+        console.error("Error adding document:", error);
+        res.status(500).json({ 
+            message: "Error adding document.", 
+            error: error.message 
+        });
+    }
+};
 
 
 
@@ -208,5 +267,5 @@ module.exports = {
 
   
 
-// ส่งออกฟังก์ชันทั้งหมด
-module.exports = { addDocumentType, updateDocumentType, getAllDocumentsType, deleteDocumentType };
+
+module.exports = { addDocumentType, updateDocumentType, getAllDocumentsType, deleteDocumentType, addDocument };

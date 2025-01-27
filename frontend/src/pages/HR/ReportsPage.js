@@ -42,7 +42,7 @@ const ReportsPage = () => {
       setError(null);
   
       const token = localStorage.getItem("token"); // ดึง token
-      const response = await fetch('http://localhost:8000/api/documents/all', {
+      const response = await fetch('http://localhost:8000/api/documents/all-doctype', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`, // เพิ่ม Header Authorization
@@ -75,7 +75,7 @@ const ReportsPage = () => {
       setError(null);
   
       const token = localStorage.getItem("token"); // ดึง token
-      const response = await fetch('http://localhost:8000/api/documents/add', {
+      const response = await fetch('http://localhost:8000/api/documents/add-doctype', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -124,7 +124,7 @@ const ReportsPage = () => {
       setError(null);
   
       const token = localStorage.getItem("token"); // ดึง token
-      const response = await fetch('http://localhost:8000/api/documents/update', {
+      const response = await fetch('http://localhost:8000/api/documents/update-doctype', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -168,7 +168,7 @@ const ReportsPage = () => {
       setError(null);
   
       const token = localStorage.getItem("token"); // ดึง token
-      const response = await fetch(`http://localhost:8000/api/documents/delete`, {
+      const response = await fetch(`http://localhost:8000/api/documents/delete-doctype`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
