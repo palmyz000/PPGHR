@@ -152,29 +152,28 @@ const deleteDocumentType = async (req, res) => {
 
 
 const addDocument = async (req, res) => {
-    const { document_name, description, doc_type_name, file_path = null , start_time, end_time} = req.body;
+    const { document_name, description, doc_type_name, file_path = null, start_time, end_time } = req.body;
     const { emp_code, tenant_id } = req.user;
 
     try {
         const conn = await db.getConnection();
 
-        // ค้นหา doc_type_id จาก doc_type_name
         const [docType] = await conn.query(
             "SELECT doc_type_id FROM PPGHR_document_types WHERE doc_type_name = ?",
             [doc_type_name]
         );
 
-        console.log("Query Result for doc_type:", docType);
-
         if (!docType || !docType.doc_type_id) {
             conn.release();
-            return res.status(400).json({
-                message: "ไม่พบประเภทเอกสารที่ระบุ",
-            });
+            return res.status(400).json({ message: "ไม่พบประเภทเอกสารที่ระบุ" });
         }
 
         const doc_type_id = docType.doc_type_id;
         const currentDate = new Date().toISOString().slice(0, 19).replace('T', ' ');
+
+        // ตั้งค่า default value สำหรับ start_time และ end_time
+        const startTime = start_time || currentDate;
+        const endTime = end_time || currentDate;
 
         const result = await conn.query(
             `INSERT INTO PPGHR_documents (
@@ -200,27 +199,23 @@ const addDocument = async (req, res) => {
                 currentDate,
                 file_path,
                 'pending',
-                start_time,
-                end_time
+                startTime,
+                endTime
             ]
         );
-
-        console.log("Insert result:", result);
 
         conn.release();
         res.status(201).json({
             message: "เพิ่มเอกสารสำเร็จ",
-            document_id: result.insertId, // แก้ไขจาก result[0].insertId เป็น result.insertId
+            document_id: result.insertId,
             doc_type_name: doc_type_name
         });
     } catch (error) {
         console.error("Error adding document:", error);
-        res.status(500).json({ 
-            message: "ไม่สามารถเพิ่มเอกสารได้", 
-            error: error.message 
-        });
+        res.status(500).json({ message: "ไม่สามารถเพิ่มเอกสารได้", error: error.message });
     }
 };
+
 
 
 
