@@ -1,47 +1,122 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import EmployeeNavigation from '../../components/EmployeeNavigation';
 import { Search, Filter, Plus, Download, FileText, Clock, CheckCircle, XCircle } from 'lucide-react';
+import axios from 'axios';
 
 const EmployeeDocuments = () => {
+  // State declarations
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [selectedType, setSelectedType] = useState('all');
+  const [showPopup, setShowPopup] = useState(false);
+  const [docTypes, setDocTypes] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [formData, setFormData] = useState({
+    document_name: '',
+    description: '',
+    doc_type_name: '', // Use doc_type_name to match API
+    status: 'pending'
+  });
 
-  // ข้อมูลจำลองสำหรับเอกสาร
-  const documents = [
-    {
-      id: 1,
-      type: 'หนังสือรับรองเงินเดือน',
-      requestDate: '2025-01-15',
-      status: 'pending',
-      description: 'ขอหนังสือรับรองเงินเดือนเพื่อทำธุรกรรมกับธนาคาร',
-      deadline: '2025-01-20',
-      approver: '-',
-      comment: 'รอการตรวจสอบจากฝ่ายบุคคล'
-    },
-    {
-      id: 2,
-      type: 'ใบลาป่วย',
-      requestDate: '2025-01-10',
-      status: 'approved',
-      description: 'ใบรับรองแพทย์และเอกสารการลาป่วย',
-      deadline: '2025-01-12',
-      approver: 'คุณสมศักดิ์ (HR)',
-      comment: 'อนุมัติเรียบร้อย'
-    },
-    {
-      id: 3,
-      type: 'เอกสารเบิกค่ารักษาพยาบาล',
-      requestDate: '2025-01-05',
-      status: 'rejected',
-      description: 'ขอเบิกค่ารักษาพยาบาลประจำเดือน',
-      deadline: '2025-01-15',
-      approver: 'คุณวิภา (Finance)',
-      comment: 'เอกสารไม่ครบถ้วน กรุณาแนบใบเสร็จเพิ่มเติม'
+  const [documents, setDocuments] = useState([]);
+
+  // Fetch document types
+  const fetchDocTypes = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('http://localhost:8000/api/documents/all-doctype', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+  
+      console.log('API Response:', response.data);
+  
+      if (response.data && Array.isArray(response.data.data)) {
+        setDocTypes(response.data.data);
+      } else {
+        throw new Error('รูปแบบข้อมูลไม่ถูกต้อง');
+      }
+    } catch (error) {
+      console.error('Error fetching document types:', error);
+      setError('ไม่สามารถโหลดประเภทเอกสารได้');
+    } finally {
+      setIsLoading(false);
     }
-  ];
+  };
+  
 
-  // กรองเอกสารตามการค้นหาและตัวกรอง
+  useEffect(() => {
+    fetchDocTypes();
+  }, []);
+
+  // Handle adding new document
+  const handleAddDocument = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      if (!formData.doc_type_name) {
+        throw new Error('กรุณาเลือกประเภทเอกสาร');
+      }
+
+      const documentData = {
+        document_name: formData.document_name,
+        description: formData.description,
+        doc_type_name: formData.doc_type_name,
+        file_path: null
+      };
+
+      const response = await axios.post(
+        'http://localhost:8000/api/documents/add-doc',
+        documentData,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json'
+          },
+        }
+      );
+
+      if (response.data) {
+        const newDoc = {
+          id: response.data.document_id,
+          type: formData.doc_type_name,
+          requestDate: new Date().toISOString().split('T')[0],
+          status: 'pending',
+          description: formData.description,
+          approver: '-',
+          comment: 'รอการตรวจสอบ'
+        };
+
+        setDocuments(prevDocs => [newDoc, ...prevDocs]);
+        setShowPopup(false);
+        setFormData({
+          document_name: '',
+          description: '',
+          doc_type_name: '',
+          status: 'pending'
+        });
+      }
+    } catch (error) {
+      setError(error.response?.data?.message || 'ไม่สามารถเพิ่มเอกสารได้');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prevState => ({
+      ...prevState,
+      [name]: value
+    }));
+  };
+
   const filteredDocuments = documents.filter(doc => {
     const matchSearch = doc.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
                        doc.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -76,6 +151,97 @@ const EmployeeDocuments = () => {
     }
   };
 
+  const AddDocumentForm = () => (
+    <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md mx-auto">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-xl font-bold text-gray-900">ยื่นเอกสารใหม่</h2>
+        <button onClick={() => setShowPopup(false)} className="text-gray-500 hover:text-gray-700">
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      {error && (
+        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">
+          {error}
+        </div>
+      )}
+
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            ชื่อเอกสาร
+          </label>
+          <input
+            type="text"
+            name="document_name"
+            value={formData.document_name}
+            onChange={handleChange}
+            className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="กรอกชื่อเอกสาร"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            คำอธิบาย
+          </label>
+          <textarea
+            name="description"
+            value={formData.description}
+            onChange={handleChange}
+            rows="4"
+            className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="กรอกรายละเอียดเอกสาร"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            ประเภทเอกสาร
+          </label>
+          {isLoading ? (
+            <div className="w-full p-2 border rounded-lg bg-gray-50">
+              กำลังโหลดข้อมูล...
+            </div>
+          ) : (
+            <select
+              name="doc_type_name"
+              value={formData.doc_type_name}
+              onChange={handleChange}
+              className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={isLoading}
+            >
+              <option value="">เลือกประเภทเอกสาร</option>
+              {docTypes.map((type) => (
+                <option key={type.doc_type_id} value={type.doc_type_name}>
+                  {type.doc_type_name}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+      </div>
+
+      <div className="mt-6 flex justify-end space-x-3">
+        <button
+          onClick={() => setShowPopup(false)}
+          className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-400"
+        >
+          ยกเลิก
+        </button>
+        <button
+          onClick={handleAddDocument}
+          disabled={!formData.document_name || !formData.description || !formData.doc_type_name || isLoading}
+          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isLoading ? 'กำลังโหลด...' : 'บันทึก'}
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <div>
       <EmployeeNavigation />
@@ -86,7 +252,7 @@ const EmployeeDocuments = () => {
             <h1 className="text-2xl font-semibold text-gray-900">เอกสารของพนักงาน</h1>
             <p className="text-gray-600 mt-1">จัดการเอกสารและติดตามสถานะการดำเนินการ</p>
           </div>
-          <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+          <button onClick={() => setShowPopup(true)} className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
             <Plus className="w-4 h-4 mr-2" />
             ยื่นเอกสารใหม่
           </button>
@@ -102,7 +268,7 @@ const EmployeeDocuments = () => {
                 <input
                   type="text"
                   placeholder="ค้นหาเอกสาร..."
-                  className="pl-10 pr-4 py-2 w-full border rounded-lg"
+                  className="pl-10 pr-4 py-2 w-full border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -112,7 +278,7 @@ const EmployeeDocuments = () => {
             {/* Status Filter */}
             <div className="w-48">
               <select
-                className="w-full p-2 border rounded-lg"
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
               >
@@ -124,7 +290,7 @@ const EmployeeDocuments = () => {
             </div>
 
             {/* Export Button */}
-            <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+            <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400">
               <Download className="w-5 h-5" />
             </button>
           </div>
@@ -176,7 +342,7 @@ const EmployeeDocuments = () => {
           </div>
         </div>
 
-        {/* Quick Actions */}
+        {/* Quick Actions / Summary Cards */}
         <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-white p-4 rounded-lg shadow">
             <h3 className="font-medium text-gray-900">เอกสารที่ต้องดำเนินการ</h3>
@@ -197,6 +363,13 @@ const EmployeeDocuments = () => {
             </p>
           </div>
         </div>
+
+        {/* Add Document Modal */}
+        {showPopup && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <AddDocumentForm />
+          </div>
+        )}
       </div>
     </div>
   );

@@ -152,25 +152,28 @@ const deleteDocumentType = async (req, res) => {
 
 
 const addDocument = async (req, res) => {
-    const { document_name, description, doc_type_id, file_path = null } = req.body;
-    const { emp_code, tenant_id } = req.user; // Assuming token data is decoded and available in req.user
+    const { document_name, description, doc_type_name, file_path = null } = req.body;
+    const { emp_code, tenant_id } = req.user;
 
     try {
         const conn = await db.getConnection();
-        
-        // Check if doc_type_id exists in PPGHR_document_types
+
+        // ค้นหา doc_type_id จาก doc_type_name
         const [docType] = await conn.query(
-            "SELECT * FROM PPGHR_document_types WHERE doc_type_id = ?",
-            [doc_type_id]
+            "SELECT doc_type_id FROM PPGHR_document_types WHERE doc_type_name = ?",
+            [doc_type_name]
         );
 
-        if (!docType || docType.length === 0) {
+        console.log("Query Result for doc_type:", docType);
+
+        if (!docType || !docType.doc_type_id) {
             conn.release();
             return res.status(400).json({
-                message: "Invalid document type ID.",
+                message: "ไม่พบประเภทเอกสารที่ระบุ",
             });
         }
 
+        const doc_type_id = docType.doc_type_id;
         const currentDate = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
         const result = await conn.query(
@@ -202,14 +205,46 @@ const addDocument = async (req, res) => {
 
         conn.release();
         res.status(201).json({
-            message: "Document added successfully!",
-            document_id: result[0].insertId
+            message: "เพิ่มเอกสารสำเร็จ",
+            document_id: result.insertId, // แก้ไขจาก result[0].insertId เป็น result.insertId
+            doc_type_name: doc_type_name
         });
     } catch (error) {
         console.error("Error adding document:", error);
         res.status(500).json({ 
-            message: "Error adding document.", 
+            message: "ไม่สามารถเพิ่มเอกสารได้", 
             error: error.message 
+        });
+    }
+};
+
+
+
+const getUserDocuments = async (req, res) => {
+    const { emp_code, tenant_id } = req.user; // Assuming token data is decoded and available in req.user
+
+    try {
+        const conn = await db.getConnection();
+
+        const [documents] = await conn.query(
+            `SELECT d.document_id, d.document_name, d.description, d.status, d.upload_date, d.last_updated, 
+                    t.doc_type_name 
+             FROM PPGHR_documents d
+             JOIN PPGHR_document_types t ON d.doc_type_id = t.doc_type_id
+             WHERE d.uploaded_by = ? AND d.tenant_id = ?`,
+            [emp_code, tenant_id]
+        );
+
+        conn.release();
+        res.status(200).json({
+            documents,
+            message: "Documents retrieved successfully!",
+        });
+    } catch (error) {
+        console.error("Error retrieving documents:", error);
+        res.status(500).json({
+            message: "Error retrieving documents.",
+            error: error.message,
         });
     }
 };
@@ -268,4 +303,4 @@ const addDocument = async (req, res) => {
   
 
 
-module.exports = { addDocumentType, updateDocumentType, getAllDocumentsType, deleteDocumentType, addDocument };
+module.exports = { addDocumentType, updateDocumentType, getAllDocumentsType, deleteDocumentType, addDocument, getUserDocuments };
