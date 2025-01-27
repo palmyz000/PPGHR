@@ -3,6 +3,7 @@ import { Card, CardContent } from '../components/Card';
 import { Users, Building2, Settings, PieChart, Bell, Search, Eye, Edit, Trash, Plus, Power } from 'lucide-react';
 
 const AdminDashboard = () => {
+  // เพิ่ม state สำหรับจัดการ active menu
   const [activeMenu, setActiveMenu] = useState('dashboard');
 
   const renderContent = () => {

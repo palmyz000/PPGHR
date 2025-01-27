@@ -21,15 +21,6 @@ const Navbar = ({ activeTab, setActiveTab }) => {
                 Dashboard
               </Link>
               <Link
-                to="/employee-portal"
-                className={`px-4 py-2 rounded-lg transition-colors ${
-                  activeTab === 'employee-portal' ? 'bg-blue-100 text-blue-800' : 'text-gray-600 hover:bg-blue-50'
-                }`}
-                onClick={() => setActiveTab('employee-portal')}
-              >
-                พอร์ทัลพนักงาน
-              </Link>
-              <Link
                 to="/employees"
                 className={`px-4 py-2 rounded-lg transition-colors ${
                   activeTab === 'employees' ? 'bg-blue-100 text-blue-800' : 'text-gray-600 hover:bg-blue-50'
