@@ -6,6 +6,7 @@ const payrollRoutes = require('./modules/payroll/payrollRoutes');
 const authRoutes = require('./modules/auth/authRoutes');
 const tenantRoutes = require('./modules/tenant/tenantRoutes');
 const userRoutes = require('./modules/user/userRoutes');
+const checkinRoutes = require('./modules/checkin-checkout/checkinRoutes');
 require('dotenv').config();
 
 const app = express();
@@ -20,7 +21,7 @@ app.use('/api/payroll', payrollRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/tenant', tenantRoutes);
 app.use('/api/user', userRoutes);
-
+app.use('/api/checkin', checkinRoutes);
 
 
 const PORT = process.env.PORT || 8000;

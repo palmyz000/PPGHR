@@ -1,4 +1,5 @@
 const mariadb = require("mariadb");
+const { LiaEraserSolid } = require("react-icons/lia");
 require("dotenv").config();
 
 const pool = mariadb.createPool({
@@ -6,12 +7,13 @@ const pool = mariadb.createPool({
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  connectionLimit: 1,
+  connectionLimit: 1, // จำกัด connection เป็น 1
   supportBigNumbers: true,
   bigNumberStrings: true,
-  idleTimeout: 30000, 
-  acquireTimeout: 30000, 
+  idleTimeout: 60000, // 60 วินาที
+  acquireTimeout: 10000, // 10 วินาที
 });
+
 
 
 const connectDB = async () => {
@@ -24,7 +26,7 @@ const connectDB = async () => {
   }
 };
 
-// ฟังก์ชัน Query ที่รองรับ Multi-Tenant
+// ฟังก์ชัน Query ที่รองรับ Multi-Tenantิอ 
 const query = async (sql, params = [], tenantId = null) => {
   let tenantParams = params;
   if (tenantId) {
@@ -55,3 +57,5 @@ const getConnection = async () => {
 connectDB();
 
 module.exports = { pool, query, getConnection };
+
+
