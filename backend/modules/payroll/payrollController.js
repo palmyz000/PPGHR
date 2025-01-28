@@ -20,18 +20,29 @@ const getPayrollData = async (req, res) => {
     emp.name, 
     emp.position, 
     emp.department, 
-    COALESCE(sb.base_salary, 0) AS salary, 
-    COALESCE(SUM(ot.total_ot), 0) AS ot, 
-    COALESCE(sp.tax, 0) AS tax, 
-    COALESCE(sp.social_security, 0) AS insurance, 
-    COALESCE(sp.total_salary - sp.net_salary, 0) AS deductions,
-    (COALESCE(sb.base_salary, 0) + COALESCE(SUM(ot.total_ot), 0) - COALESCE(sp.tax, 0) - COALESCE(sp.social_security, 0)) AS net_salary
+    COALESCE(sb.base_salary, 0) AS base_salary, -- เงินเดือนพื้นฐาน
+    COALESCE(sb.allowance, 0) AS allowance, -- ค่าเบี้ยเลี้ยง
+    COALESCE(SUM(ot.total_ot), 0) AS ot, -- รายได้จาก OT
+    (
+        COALESCE(sb.base_salary, 0) + COALESCE(sb.allowance, 0) + COALESCE(SUM(ot.total_ot), 0)
+    ) AS gross_income, -- รายได้รวม
+    (
+        COALESCE(sb.base_salary, 0) + COALESCE(sb.allowance, 0) + COALESCE(SUM(ot.total_ot), 0)
+    ) * (COALESCE(sb.tax_rate, 0) / 100) AS tax, -- คำนวณภาษี
+    COALESCE(sb.insurance, 0) AS insurance, -- ค่าประกันสังคม
+    (
+        COALESCE(sb.base_salary, 0) + COALESCE(sb.allowance, 0) + COALESCE(SUM(ot.total_ot), 0)
+        - ((COALESCE(sb.base_salary, 0) + COALESCE(sb.allowance, 0) + COALESCE(SUM(ot.total_ot), 0)) * COALESCE(sb.tax_rate, 0) / 100)
+        - COALESCE(sb.insurance, 0)
+    ) AS net_salary -- รายได้สุทธิ
 FROM PPGHR_employee_data emp
 LEFT JOIN PPGHR_salary_base sb ON emp.emp_code = sb.emp_code
 LEFT JOIN PPGHR_ot ot ON emp.emp_code = ot.emp_code
-LEFT JOIN PPGHR_salary_payments sp ON emp.emp_code = sp.emp_code
-GROUP BY emp.emp_code, emp.name, emp.position, emp.department, sb.base_salary, sp.tax, sp.social_security, sp.total_salary, sp.net_salary
+GROUP BY emp.emp_code, emp.name, emp.position, emp.department, sb.base_salary, sb.allowance, sb.tax_rate, sb.insurance
 ORDER BY emp.emp_code;
+
+
+
 
     `;
 

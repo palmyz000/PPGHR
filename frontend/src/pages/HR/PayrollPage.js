@@ -33,10 +33,10 @@ const PayrollPage = () => {
   const fetchPayrollData = async () => {
     setLoading(true);
     setError(null);
-  
+
     try {
       const token = localStorage.getItem("token"); // ดึง token จาก localStorage
-  
+
       const response = await fetch(`http://localhost:8000/api/payroll/all-payroll?month=${selectedMonth}`, {
         method: "GET",
         headers: {
@@ -44,9 +44,9 @@ const PayrollPage = () => {
           "Authorization": `Bearer ${token}`, // ส่ง token ใน Authorization header
         },
       });
-  
+
       const data = await response.json();
-  
+
       if (response.ok && data.data) {
         setPayrollData(data.data);
       } else {
@@ -61,7 +61,6 @@ const PayrollPage = () => {
       setLoading(false);
     }
   };
-  
 
   const filteredData = payrollData.filter((employee) => {
     const matchesSearch =
@@ -74,7 +73,7 @@ const PayrollPage = () => {
 
   const totalSummary = filteredData.reduce(
     (acc, curr) => ({
-      salary: acc.salary + parseFloat(curr.salary || 0),
+      salary: acc.salary + parseFloat(curr.base_salary || 0),
       ot: acc.ot + parseFloat(curr.ot || 0),
       tax: acc.tax + parseFloat(curr.tax || 0),
       insurance: acc.insurance + parseFloat(curr.insurance || 0),
@@ -181,7 +180,7 @@ const PayrollPage = () => {
                         <td className="py-3 px-4">{employee.name}</td>
                         <td className="py-3 px-4">{employee.position}</td>
                         <td className="py-3 px-4">{employee.department}</td>
-                        <td className="py-3 px-4 text-right">{parseFloat(employee.salary).toLocaleString()} ฿</td>
+                        <td className="py-3 px-4 text-right">{parseFloat(employee.base_salary).toLocaleString()} ฿</td>
                         <td className="py-3 px-4 text-right">{parseFloat(employee.ot).toLocaleString()} ฿</td>
                         <td className="py-3 px-4 text-right text-red-600">-{parseFloat(employee.tax).toLocaleString()} ฿</td>
                         <td className="py-3 px-4 text-right text-red-600">-{parseFloat(employee.insurance).toLocaleString()} ฿</td>
