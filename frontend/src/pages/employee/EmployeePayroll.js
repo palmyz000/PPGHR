@@ -1,3 +1,4 @@
+// React Component
 import React, { useState, useEffect } from 'react';
 import EmployeeNavigation from '../../components/EmployeeNavigation';
 import axios from 'axios';
@@ -33,6 +34,8 @@ const EmployeePayroll = () => {
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
+
+  const formatNumber = (num) => parseFloat(num).toLocaleString('th-TH');
 
   return (
     <div>
@@ -73,11 +76,11 @@ const EmployeePayroll = () => {
               <div className="space-y-4">
                 <div className="flex justify-between">
                   <span>เงินเดือนพื้นฐาน</span>
-                  <span>{salaryInfo.base_salary.toLocaleString()} บาท</span>
+                  <span>{formatNumber(salaryInfo.base_salary)} บาท</span>
                 </div>
                 <div className="flex justify-between">
                   <span>เงินเดือนรวม</span>
-                  <span>{salaryInfo.gross_salary.toLocaleString()} บาท</span>
+                  <span>{formatNumber(salaryInfo.gross_salary)} บาท</span>
                 </div>
               </div>
             </div>
@@ -88,11 +91,11 @@ const EmployeePayroll = () => {
               <div className="space-y-4">
                 <div className="flex justify-between">
                   <span>ภาษี</span>
-                  <span>{parseFloat(salaryInfo.tax).toLocaleString()} บาท</span>
+                  <span>{formatNumber(salaryInfo.tax)} บาท</span>
                 </div>
                 <div className="flex justify-between">
                   <span>ประกันสังคม</span>
-                  <span>{salaryInfo.insurance.toLocaleString()} บาท</span>
+                  <span>{formatNumber(salaryInfo.insurance)} บาท</span>
                 </div>
               </div>
             </div>
@@ -102,7 +105,7 @@ const EmployeePayroll = () => {
               <div className="flex justify-between items-center">
                 <h2 className="text-xl font-semibold">เงินเดือนสุทธิ</h2>
                 <span className="text-2xl font-bold text-green-600">
-                  {parseFloat(salaryInfo.net_salary).toLocaleString()} บาท
+                  {formatNumber(salaryInfo.net_salary)} บาท
                 </span>
               </div>
             </div>
