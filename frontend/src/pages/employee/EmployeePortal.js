@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { ChevronRight, History, FileText, CheckCircle, Settings } from 'lucide-react';
 import EmployeeNavigation from '../../components/EmployeeNavigation';
 
 // Card Components
@@ -30,19 +28,166 @@ const CardContent = ({ children }) => (
 );
 
 // Button Component
-const Button = ({ children, className = '', onClick }) => (
+const Button = ({ children, className = '', onClick, disabled }) => (
   <button
     className={`px-4 py-2 rounded-lg font-medium transition-colors ${className}`}
     onClick={onClick}
+    disabled={disabled}
   >
     {children}
   </button>
 );
 
+// Check In/Out Card Component
+const CheckInCard = () => {
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [isCheckedIn, setIsCheckedIn] = useState(false);
+  const [lastCheckInTime, setLastCheckInTime] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    // Check initial status when component mounts
+    fetchCheckInStatus();
+
+    return () => clearInterval(timer);
+  }, []);
+
+  const fetchCheckInStatus = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/api/checkin/status');
+      if (!response.ok) throw new Error('Failed to fetch status');
+      
+      const data = await response.json();
+      setIsCheckedIn(data.isCheckedIn);
+      if (data.lastCheckIn) {
+        setLastCheckInTime(new Date(data.lastCheckIn));
+      }
+    } catch (err) {
+      setError('ไม่สามารถโหลดสถานะได้');
+      console.error('Error fetching status:', err);
+    }
+  };
+
+  const handleCheckInOut = async () => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const response = await fetch('http://localhost:8000/api/checkin/record', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: isCheckedIn ? 'checkout' : 'checkin',
+          timestamp: new Date().toISOString(),
+        }),
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('unauthorized');
+        } else if (response.status === 400) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'invalid_data');
+        } else if (response.status === 409) {
+          throw new Error('duplicate_record');
+        } else {
+          throw new Error('server_error');
+        }
+      }
+
+      const data = await response.json();
+      setIsCheckedIn(!isCheckedIn);
+      if (!isCheckedIn) {
+        setLastCheckInTime(new Date());
+      }
+    } catch (err) {
+      console.error('Error recording attendance:', err);
+      
+      // จัดการ error message ตามประเภทของ error
+      if (err.message === 'unauthorized') {
+        setError('กรุณาเข้าสู่ระบบใหม่อีกครั้ง');
+      } else if (err.message === 'invalid_data') {
+        setError('ข้อมูลไม่ถูกต้อง กรุณาตรวจสอบและลองใหม่อีกครั้ง');
+      } else if (err.message === 'duplicate_record') {
+        setError('คุณได้ทำการเช็คอิน/เช็คเอาท์ไปแล้วในวันนี้');
+      } else if (err.name === 'TypeError') {
+        setError('ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต');
+      } else {
+        // Log detailed error information
+        console.error('Detailed error:', {
+          errorName: err.name,
+          errorMessage: err.message,
+          errorStack: err.stack
+        });
+        
+        let errorMessage = 'เกิดข้อผิดพลาดจากระบบ: ';
+        
+        if (err.message === 'server_error') {
+          errorMessage += 'Server ไม่ตอบสนอง';
+        } else if (err.message.includes('NetworkError')) {
+          errorMessage += 'ปัญหาการเชื่อมต่อเครือข่าย';
+        } else if (err.message.includes('timeout')) {
+          errorMessage += 'การเชื่อมต่อใช้เวลานานเกินไป';
+        } else if (err.message.includes('Failed to fetch')) {
+          errorMessage += 'ไม่สามารถเชื่อมต่อกับ API ได้';
+        } else {
+          errorMessage += err.message || 'กรุณาลองใหม่อีกครั้งหรือติดต่อผู้ดูแลระบบ';
+        }
+        
+        setError(errorMessage);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>บันทึกเวลาทำงาน</CardTitle>
+        <CardDescription>บันทึกเวลาเข้า-ออกงานประจำวัน</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="text-center">
+          <p className="text-3xl font-bold mb-6">
+            {currentTime.toLocaleTimeString('th-TH')}
+          </p>
+          {error && (
+            <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">
+              {error}
+            </div>
+          )}
+          <Button
+            onClick={handleCheckInOut}
+            disabled={isLoading}
+            className={`w-full py-6 text-lg text-white ${
+              isLoading ? 'bg-gray-400 cursor-not-allowed' :
+              isCheckedIn ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'
+            }`}
+          >
+            {isLoading ? 'กำลังดำเนินการ...' : isCheckedIn ? 'เช็คเอาท์' : 'เช็คอิน'}
+          </Button>
+          {isCheckedIn && lastCheckInTime && (
+            <p className="mt-4 text-green-600">
+              คุณได้เช็คอินเมื่อเวลา {lastCheckInTime.toLocaleTimeString('th-TH')} น.
+            </p>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
 // Main EmployeePortal Component
 const EmployeePortal = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [isCheckedIn, setIsCheckedIn] = useState(false);
   
   useEffect(() => {
     const timer = setInterval(() => {
@@ -75,10 +220,6 @@ const EmployeePortal = () => {
     { id: 2, name: 'ขอเบิกค่ารักษาพยาบาล', status: 'รออนุมัติ', progress: 30 },
   ];
 
-  const handleCheckInOut = () => {
-    setIsCheckedIn(!isCheckedIn);
-  };
-
   return (
     <div>
       <EmployeeNavigation />
@@ -105,30 +246,7 @@ const EmployeePortal = () => {
       
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Check In/Out Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle>บันทึกเวลาทำงาน</CardTitle>
-              <CardDescription>บันทึกเวลาเข้า-ออกงานประจำวัน</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center">
-                <p className="text-3xl font-bold mb-6">
-                  {currentTime.toLocaleTimeString('th-TH')}
-                </p>
-                <Button
-                  onClick={handleCheckInOut}
-                  className={`w-full py-6 text-lg text-white ${
-                    isCheckedIn ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'
-                  }`}
-                >
-                  {isCheckedIn ? 'เช็คเอาท์' : 'เช็คอิน'}
-                </Button>
-                {isCheckedIn && (
-                  <p className="mt-4 text-green-600">คุณได้เช็คอินเมื่อเวลา 09:00 น.</p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+          <CheckInCard />
 
           {/* Calendar and Leave Card */}
           <Card className="lg:col-span-2">
