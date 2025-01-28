@@ -1,27 +1,41 @@
-import React, { useState } from 'react';
+// React Component
+import React, { useState, useEffect } from 'react';
 import EmployeeNavigation from '../../components/EmployeeNavigation';
+import axios from 'axios';
 
 const EmployeePayroll = () => {
   const [activeTab, setActiveTab] = useState('current');
-  
-  // ตัวอย่างข้อมูล (ในการใช้งานจริงควรดึงจาก API)
-  const salaryInfo = {
-    baseSalary: 45000,
-    overtimeHours: 12,
-    overtimeRate: 250,
-    bonus: 5000,
-    tax: 2500,
-    socialSecurity: 750,
-    providentFund: 2250,
-  };
+  const [salaryInfo, setSalaryInfo] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const calculateNet = () => {
-    const gross = salaryInfo.baseSalary + 
-                 (salaryInfo.overtimeHours * salaryInfo.overtimeRate) + 
-                 salaryInfo.bonus;
-    const deductions = salaryInfo.tax + salaryInfo.socialSecurity + salaryInfo.providentFund;
-    return gross - deductions;
-  };
+  useEffect(() => {
+    const fetchSalaryData = async () => {
+      try {
+        const response = await axios.get('http://localhost:8000/api/payroll/my-salary', {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}` // Add Authorization header
+          }
+        });
+        setSalaryInfo(response.data.data);
+        setLoading(false);
+      } catch (err) {
+        if (err.response && err.response.status === 401) {
+          setError("Authorization header missing or invalid.");
+        } else {
+          setError(err.message);
+        }
+        setLoading(false);
+      }
+    };
+
+    fetchSalaryData();
+  }, []);
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
+
+  const formatNumber = (num) => parseFloat(num).toLocaleString('th-TH');
 
   return (
     <div>
@@ -54,7 +68,7 @@ const EmployeePayroll = () => {
         </div>
 
         {/* Tab Content */}
-        {activeTab === 'current' && (
+        {activeTab === 'current' && salaryInfo && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* รายได้ */}
             <div className="bg-white p-6 rounded-lg shadow">
@@ -62,15 +76,11 @@ const EmployeePayroll = () => {
               <div className="space-y-4">
                 <div className="flex justify-between">
                   <span>เงินเดือนพื้นฐาน</span>
-                  <span>{salaryInfo.baseSalary.toLocaleString()} บาท</span>
+                  <span>{formatNumber(salaryInfo.base_salary)} บาท</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>ค่าล่วงเวลา ({salaryInfo.overtimeHours} ชั่วโมง)</span>
-                  <span>{(salaryInfo.overtimeHours * salaryInfo.overtimeRate).toLocaleString()} บาท</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>โบนัส</span>
-                  <span>{salaryInfo.bonus.toLocaleString()} บาท</span>
+                  <span>เงินเดือนรวม</span>
+                  <span>{formatNumber(salaryInfo.gross_salary)} บาท</span>
                 </div>
               </div>
             </div>
@@ -81,15 +91,11 @@ const EmployeePayroll = () => {
               <div className="space-y-4">
                 <div className="flex justify-between">
                   <span>ภาษี</span>
-                  <span>{salaryInfo.tax.toLocaleString()} บาท</span>
+                  <span>{formatNumber(salaryInfo.tax)} บาท</span>
                 </div>
                 <div className="flex justify-between">
                   <span>ประกันสังคม</span>
-                  <span>{salaryInfo.socialSecurity.toLocaleString()} บาท</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>กองทุนสำรองเลี้ยงชีพ</span>
-                  <span>{salaryInfo.providentFund.toLocaleString()} บาท</span>
+                  <span>{formatNumber(salaryInfo.insurance)} บาท</span>
                 </div>
               </div>
             </div>
@@ -99,7 +105,7 @@ const EmployeePayroll = () => {
               <div className="flex justify-between items-center">
                 <h2 className="text-xl font-semibold">เงินเดือนสุทธิ</h2>
                 <span className="text-2xl font-bold text-green-600">
-                  {calculateNet().toLocaleString()} บาท
+                  {formatNumber(salaryInfo.net_salary)} บาท
                 </span>
               </div>
             </div>

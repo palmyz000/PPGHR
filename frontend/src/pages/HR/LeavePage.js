@@ -1,63 +1,82 @@
-// LeavePage.js
-import React, { useState } from 'react';
-import { Search, Filter, Plus, Calendar, Clock, ChevronDown, MoreVertical } from 'lucide-react';
-import Navbar from '../../components/Navbar';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { ChevronDown, MoreVertical, Plus, Clock, Calendar } from 'lucide-react';
 
 const LeavePage = () => {
-  const [selectedStatus, setSelectedStatus] = useState('all');
   const [selectedType, setSelectedType] = useState('all');
+  const [leaveTypes, setLeaveTypes] = useState([]);
+  const [leaveRequests, setLeaveRequests] = useState([]);
+  const [selectedStatus, setSelectedStatus] = useState('all');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // ตัวอย่างข้อมูลการลา
-  const leaveRequests = [
-    {
-      id: 1,
-      employeeName: 'สมชาย ใจดี',
-      type: 'ลาพักร้อน',
-      startDate: '2025-01-25',
-      endDate: '2025-01-26',
-      days: 2,
-      status: 'pending',
-      reason: 'พักผ่อนกับครอบครัว',
-      requestDate: '2025-01-20'
-    },
-    {
-      id: 2,
-      employeeName: 'สมหญิง รักงาน',
-      type: 'ลาป่วย',
-      startDate: '2025-01-22',
-      endDate: '2025-01-22',
-      days: 1,
-      status: 'approved',
-      reason: 'ไข้หวัด',
-      requestDate: '2025-01-21'
-    },
-    {
-      id: 3,
-      employeeName: 'วิชัย เก่งกาจ',
-      type: 'ลากิจ',
-      startDate: '2025-01-24',
-      endDate: '2025-01-24',
-      days: 1,
-      status: 'rejected',
-      reason: 'ติดต่อธนาคาร',
-      requestDate: '2025-01-19'
-    }
-  ];
+  useEffect(() => {
+    const fetchLeaveTypes = async () => {
+      try {
+        const response = await axios.get('http://localhost:8000/api/documents/all-doctype', {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        console.log('Leave Types Response:', response.data);
+        setLeaveTypes(response.data.data);
+      } catch (error) {
+        console.error('Error fetching leave types:', error);
+        setError('เกิดข้อผิดพลาดในการดึงข้อมูลประเภทการลา');
+      }
+    };
 
-  // ประเภทการลา
-  const leaveTypes = ['ลาพักร้อน', 'ลาป่วย', 'ลากิจ', 'ลาคลอด', 'ลาบวช'];
+    const fetchLeaveRequests = async () => {
+      try {
+        const response = await axios.get('http://localhost:8000/api/documents/all-doc', {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        const formattedData = response.data.data.map((doc) => ({
+          id: doc.document_id,
+          employeeName: `พนักงาน ID: ${doc.uploaded_by}`,
+          type: doc.doc_type_name || 'ไม่ระบุ',
+          startDate: doc.start_time?.split('T')[0],
+          endDate: doc.end_time?.split('T')[0],
+          days: calculateDays(doc.start_time, doc.end_time),
+          status: doc.status,
+          reason: doc.description,
+          requestDate: doc.upload_date.split('T')[0]
+        }));
+        setLeaveRequests(formattedData);
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching leave requests:', err);
+        setError('เกิดข้อผิดพลาดในการดึงข้อมูลคำขอลา');
+        setLoading(false);
+      }
+    };
+
+    fetchLeaveTypes();
+    fetchLeaveRequests();
+  }, []);
+
+  const calculateDays = (start, end) => {
+    if (!start || !end) return 0;
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    return Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+  };
+
   const statuses = ['pending', 'approved', 'rejected'];
 
-  // กรองข้อมูลการลา
-  const filteredLeaves = leaveRequests.filter(leave => {
+  const filteredLeaves = leaveRequests.filter((leave) => {
     const statusMatch = selectedStatus === 'all' || leave.status === selectedStatus;
     const typeMatch = selectedType === 'all' || leave.type === selectedType;
     return statusMatch && typeMatch;
   });
 
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>{error}</div>;
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      {/* Header Section */}
       <div className="mb-6 flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">การลา</h1>
@@ -69,72 +88,31 @@ const LeavePage = () => {
         </button>
       </div>
 
-      {/* Quick Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
         <div className="bg-white rounded-xl shadow-sm p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">รออนุมัติ</p>
-              <h3 className="text-2xl font-bold text-blue-900">8 รายการ</h3>
+              <h3 className="text-2xl font-bold text-blue-900">{leaveRequests.filter((leave) => leave.status === 'pending').length} รายการ</h3>
             </div>
             <div className="p-3 bg-yellow-50 rounded-full">
               <Clock className="h-6 w-6 text-yellow-600" />
             </div>
           </div>
         </div>
-
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">วันลาพักร้อนคงเหลือ</p>
-              <h3 className="text-2xl font-bold text-blue-900">12 วัน</h3>
-            </div>
-            <div className="p-3 bg-blue-50 rounded-full">
-              <Calendar className="h-6 w-6 text-blue-600" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">วันลาป่วยคงเหลือ</p>
-              <h3 className="text-2xl font-bold text-blue-900">30 วัน</h3>
-            </div>
-            <div className="p-3 bg-green-50 rounded-full">
-              <Calendar className="h-6 w-6 text-green-600" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">วันลากิจคงเหลือ</p>
-              <h3 className="text-2xl font-bold text-blue-900">5 วัน</h3>
-            </div>
-            <div className="p-3 bg-purple-50 rounded-full">
-              <Calendar className="h-6 w-6 text-purple-600" />
-            </div>
-          </div>
-        </div>
       </div>
 
-      {/* Filters and Search Section */}
       <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
         <div className="flex flex-wrap gap-4 items-center justify-between">
           <div className="flex gap-4 items-center flex-1">
-            {/* Search */}
             <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
                 type="text"
                 placeholder="ค้นหาการลา..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
 
-            {/* Type Filter */}
             <div className="relative">
               <select
                 value={selectedType}
@@ -142,14 +120,13 @@ const LeavePage = () => {
                 className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="all">ประเภทการลาทั้งหมด</option>
-                {leaveTypes.map(type => (
-                  <option key={type} value={type}>{type}</option>
+                {leaveTypes.map((type) => (
+                  <option key={type.doc_type_id} value={type.doc_type_name}>{type.doc_type_name}</option>
                 ))}
               </select>
               <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             </div>
 
-            {/* Status Filter */}
             <div className="relative">
               <select
                 value={selectedStatus}
@@ -157,10 +134,8 @@ const LeavePage = () => {
                 className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="all">สถานะทั้งหมด</option>
-                {statuses.map(status => (
-                  <option key={status} value={status}>
-                    {status === 'pending' ? 'รออนุมัติ' : status === 'approved' ? 'อนุมัติแล้ว' : 'ไม่อนุมัติ'}
-                  </option>
+                {statuses.map((status) => (
+                  <option key={status} value={status}>{status === 'pending' ? 'รออนุมัติ' : status === 'approved' ? 'อนุมัติแล้ว' : 'ไม่อนุมัติ'}</option>
                 ))}
               </select>
               <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -169,34 +144,19 @@ const LeavePage = () => {
         </div>
       </div>
 
-      {/* Leave Requests Table */}
       <div className="bg-white rounded-lg shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  พนักงาน
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  ประเภทการลา
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  วันที่ลา
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  จำนวนวัน
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  เหตุผล
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  วันที่ขอลา
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  สถานะ
-                </th>
-                <th scope="col" className="relative px-6 py-3">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">พนักงาน</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ประเภทการลา</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">วันที่ลา</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">จำนวนวัน</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">เหตุผล</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">วันที่ขอลา</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">สถานะ</th>
+                <th className="relative px-6 py-3">
                   <span className="sr-only">Actions</span>
                 </th>
               </tr>
@@ -211,9 +171,7 @@ const LeavePage = () => {
                     <div className="text-sm text-gray-900">{leave.type}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      {leave.startDate} - {leave.endDate}
-                    </div>
+                    <div className="text-sm text-gray-900">{leave.startDate} - {leave.endDate}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">{leave.days} วัน</div>
@@ -244,42 +202,6 @@ const LeavePage = () => {
               ))}
             </tbody>
           </table>
-        </div>
-
-        {/* Pagination */}
-        <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-          <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm text-gray-700">
-                แสดง <span className="font-medium">1</span> ถึง <span className="font-medium">3</span> จาก{' '}
-                <span className="font-medium">12</span> รายการ
-              </p>
-            </div>
-            <div>
-              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                <button className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                  <span className="sr-only">Previous</span>
-                  ก่อนหน้า
-                </button>
-                <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
-                  1
-                </button>
-                <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
-                  1
-                </button>
-                <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
-                  2
-                </button>
-                <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
-                  3
-                </button>
-                <button className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                  <span className="sr-only">Next</span>
-                  ถัดไป
-                </button>
-              </nav>
-            </div>
-          </div>
         </div>
       </div>
     </div>

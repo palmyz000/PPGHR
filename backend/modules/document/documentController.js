@@ -221,6 +221,85 @@ const addDocument = async (req, res) => {
 
 
 
+
+const getAllDocuments = async (req, res) => { ///// ยังมีปัญหา
+
+
+    let conn;
+    try {
+        conn = await db.getConnection();
+
+        const query = `
+            SELECT d.*, dt.doc_type_name 
+            FROM PPGHR_documents d
+            LEFT JOIN PPGHR_document_types dt ON d.doc_type_id = dt.doc_type_id
+        `;
+
+        const rows = await conn.query(query);
+
+        if (!rows || rows.length === 0) {
+            return res.status(404).json({
+                message: "ไม่พบข้อมูลเอกสาร",
+                data: [],
+            });
+        }
+
+        res.status(200).json({
+            message: "ดึงข้อมูลเอกสารสำเร็จ",
+            data: rows,
+        });
+    } catch (error) {
+        console.error("Error fetching documents:", error);
+        res.status(500).json({
+            message: "เกิดข้อผิดพลาดในการดึงข้อมูล",
+            error: error.message,
+        });
+    } finally {
+        if (conn) conn.release();
+    }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 const getUserDocuments = async (req, res) => { ///// ยังมีปัญหา
 
 
@@ -319,4 +398,4 @@ const getUserDocuments = async (req, res) => { ///// ยังมีปัญห
   
 
 
-module.exports = { addDocumentType, updateDocumentType, getAllDocumentsType, deleteDocumentType, addDocument, getUserDocuments };
+module.exports = { addDocumentType, updateDocumentType, getAllDocumentsType, deleteDocumentType, addDocument, getUserDocuments, getAllDocuments };

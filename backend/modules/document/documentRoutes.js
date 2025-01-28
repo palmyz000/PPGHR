@@ -1,6 +1,8 @@
 const express = require("express");
 const authenticateJWT = require("../../middlewares/authenticateJWT"); // Import Middleware
-const { addDocumentType, updateDocumentType, getAllDocumentsType, deleteDocumentType, addDocument, getUserDocuments } = require("./documentController");
+const { addDocumentType, updateDocumentType, getAllDocumentsType, deleteDocumentType, addDocument, getUserDocuments,
+    getAllDocuments
+ } = require("./documentController");
 
 const router = express.Router();
 
@@ -13,5 +15,6 @@ router.put("/update-doctype", updateDocumentType);
 router.delete("/delete-doctype", deleteDocumentType);
 router.post("/add-doc", addDocument);
 router.get("/my-doc", getUserDocuments);
+router.get("/all-doc", getAllDocuments);
 
 module.exports = router;
