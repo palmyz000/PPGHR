@@ -1,6 +1,6 @@
 const express = require("express");
 const authenticateJWT = require("../../middlewares/authenticateJWT"); // Import Middleware
-const { getPayrollData } = require("./payrollController");
+const { getPayrollData, getUserSalary } = require("./payrollController");
 
 const router = express.Router();
 
@@ -8,5 +8,6 @@ const router = express.Router();
 router.use(authenticateJWT);
 
 router.get("/all-payroll", getPayrollData);
+router.get("/my-salary", getUserSalary);
 
 module.exports = router;

@@ -60,4 +60,59 @@ ORDER BY emp.emp_code;
   }
 };
 
-module.exports = { getPayrollData };
+const getUserSalary = async (req, res) => {
+  const { emp_code, tenant_id } = req.user;
+
+  let conn;
+  try {
+      conn = await db.getConnection();
+
+      const query = `
+          SELECT 
+              emp_code,
+              base_salary,
+              allowance,
+              insurance,
+              tax_rate,
+              (base_salary + allowance) AS gross_salary, -- คำนวณเงินเดือนรวม
+              ((base_salary + allowance) * tax_rate / 100) AS tax, -- คำนวณภาษี
+              ((base_salary + allowance) - ((base_salary + allowance) * tax_rate / 100) - insurance) AS net_salary -- คำนวณเงินเดือนสุทธิ
+          FROM PPGHR_salary_base
+          WHERE emp_code = ? AND tenant_id = ?
+      `;
+
+      // ใช้ parameterized query เพื่อป้องกัน SQL Injection
+      const [rows] = await conn.query(query, [emp_code, tenant_id]);
+
+      if (!rows || rows.length === 0) {
+          return res.status(404).json({
+              message: "ไม่พบข้อมูลเอกสาร",
+              data: [],
+          });
+      }
+
+      res.status(200).json({
+          message: "ดึงข้อมูลเอกสารสำเร็จ",
+          data: rows, // ส่งผลลัพธ์ทั้งหมดกลับไป
+      });
+  } catch (error) {
+      console.error("Error fetching documents:", error);
+      res.status(500).json({
+          message: "เกิดข้อผิดพลาดในการดึงข้อมูล",
+          error: error.message,
+      });
+  } finally {
+      if (conn) conn.release();
+  }
+};
+
+
+
+
+
+
+
+
+
+
+module.exports = { getPayrollData, getUserSalary };
