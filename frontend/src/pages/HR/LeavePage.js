@@ -35,7 +35,7 @@ const LeavePage = () => {
         });
         const formattedData = response.data.data.map((doc) => ({
           id: doc.document_id,
-          employeeName: `พนักงาน ID: ${doc.uploaded_by}`,
+          employeeName: `${doc.uploaded_by}`,
           type: doc.doc_type_name || 'ไม่ระบุ',
           startDate: doc.start_time?.split('T')[0],
           endDate: doc.end_time?.split('T')[0],
@@ -149,7 +149,7 @@ const LeavePage = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">พนักงาน</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">รหัสพนักงาน</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ประเภทการลา</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">วันที่ลา</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">จำนวนวัน</th>
